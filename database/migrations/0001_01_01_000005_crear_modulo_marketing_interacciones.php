@@ -22,6 +22,7 @@ return new class extends Migration
             $table->decimal('monto_minimo_compra', 12, 2)->default(0);
             $table->boolean('activo')->default(true);
         });
+
         DB::statement("ALTER TABLE promocion ADD COLUMN tipo_beneficio tipo_descuento NOT NULL");
         DB::statement("ALTER TABLE promocion ADD COLUMN alcance alcance_promo NOT NULL");
         DB::statement("
@@ -37,7 +38,6 @@ return new class extends Migration
             $table->uuid('id_uso')->primary()->default(DB::raw('gen_random_uuid()'));
             $table->foreignUuid('id_promocion')->constrained('promocion', 'id_promocion');
             $table->foreignUuid('id_usuario')->constrained('usuario', 'id_usuario');
-            $table->foreignUuid('id_orden_compra')->nullable()->constrained('orden_compra', 'id_orden_compra');
             $table->foreignUuid('id_pedido')->nullable()->constrained('pedido', 'id_pedido');
             $table->decimal('monto_ahorrado', 12, 2);
             $table->timestampTz('fecha_uso')->default(DB::raw('now()'));

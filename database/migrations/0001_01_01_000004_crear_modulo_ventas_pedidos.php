@@ -12,6 +12,7 @@ return new class extends Migration
         Schema::create('carrito', function (Blueprint $table) {
             $table->uuid('id_carrito')->primary()->default(DB::raw('gen_random_uuid()'));
             $table->foreignUuid('id_usuario')->constrained('usuario', 'id_usuario');
+            $table->foreignUuid('id_sucursal_activa')->nullable()->constrained('sucursal', 'id_sucursal'); // NUEVO
             $table->timestampTz('ultima_modificacion')->default(DB::raw('now()'));
             $table->unique('id_usuario');
         });
@@ -20,27 +21,13 @@ return new class extends Migration
             $table->id('id_item');
             $table->foreignUuid('id_carrito')->constrained('carrito', 'id_carrito')->cascadeOnDelete();
             $table->foreignUuid('id_producto')->constrained('producto', 'id_producto');
-            $table->foreignUuid('id_sucursal_origen')->constrained('sucursal', 'id_sucursal');
             $table->integer('cantidad');
             $table->text('observacion')->nullable();
             $table->timestampTz('fecha_agregado')->default(DB::raw('now()'));
         });
-        DB::statement("CREATE INDEX idx_item_carrito_sucursal ON item_carrito(id_sucursal_origen)");
-
-        Schema::create('orden_compra', function (Blueprint $table) {
-            $table->uuid('id_orden_compra')->primary()->default(DB::raw('gen_random_uuid()'));
-            $table->foreignUuid('id_usuario')->constrained('usuario', 'id_usuario');
-            $table->decimal('importe_productos_total', 12, 2)->default(0);
-            $table->decimal('importe_delivery_total', 12, 2)->default(0);
-            $table->decimal('importe_descuento_total', 12, 2)->default(0);
-            $table->decimal('importe_final_total', 12, 2)->default(0);
-            $table->timestampTz('fecha_registro')->default(DB::raw('now()'));
-        });
 
         Schema::create('pedido', function (Blueprint $table) {
             $table->uuid('id_pedido')->primary()->default(DB::raw('gen_random_uuid()'));
-            $table->foreignUuid('id_orden_compra')->constrained('orden_compra', 'id_orden_compra')->cascadeOnDelete();
-            $table->bigInteger('numero_orden_publico');
             $table->foreignUuid('id_sucursal')->constrained('sucursal', 'id_sucursal');
             $table->foreignUuid('id_usuario')->constrained('usuario', 'id_usuario');
             $table->decimal('importe_subtotal', 12, 2)->default(0);
@@ -51,13 +38,12 @@ return new class extends Migration
             $table->timestampTz('fecha_programada')->nullable();
             $table->timestampTz('fecha_creacion')->default(DB::raw('now()'));
         });
-        DB::statement("ALTER TABLE pedido ALTER COLUMN numero_orden_publico ADD GENERATED ALWAYS AS IDENTITY");
+        DB::statement('ALTER TABLE pedido ADD COLUMN numero_orden_publico bigint GENERATED ALWAYS AS IDENTITY');
         DB::statement("ALTER TABLE pedido ADD COLUMN estado estado_pedido DEFAULT 'pendiente'");
         DB::statement("ALTER TABLE pedido ADD COLUMN canal canal_venta NOT NULL");
         DB::statement("ALTER TABLE pedido ADD COLUMN tipo_entrega tipo_entrega NOT NULL");
         DB::statement('ALTER TABLE pedido ADD COLUMN ubicacion_entrega point');
         DB::statement("CREATE INDEX idx_pedido_numero_publico ON pedido(numero_orden_publico)");
-        DB::statement("CREATE INDEX idx_pedido_orden_padre ON pedido(id_orden_compra)");
         DB::statement("CREATE INDEX idx_pedido_sucursal_estado ON pedido (id_sucursal, fecha_creacion) WHERE estado = 'pendiente'");
 
         Schema::create('detalle_pedido', function (Blueprint $table) {
@@ -73,7 +59,7 @@ return new class extends Migration
 
         Schema::create('transaccion_pago', function (Blueprint $table) {
             $table->uuid('id_transaccion')->primary()->default(DB::raw('gen_random_uuid()'));
-            $table->foreignUuid('id_orden_compra')->constrained('orden_compra', 'id_orden_compra');
+            $table->foreignUuid('id_pedido')->constrained('pedido', 'id_pedido');
             $table->foreignUuid('id_metodo_guardado')->nullable()->constrained('billetera_usuario', 'id_metodo');
             $table->decimal('monto_total', 12, 2);
             $table->char('moneda', 3)->default('BOB');
@@ -85,7 +71,7 @@ return new class extends Migration
         });
         DB::statement("ALTER TABLE transaccion_pago ADD COLUMN tipo_metodo tipo_metodo_pago NOT NULL");
         DB::statement("ALTER TABLE transaccion_pago ADD COLUMN estado estado_transaccion DEFAULT 'pendiente'");
-        DB::statement("CREATE INDEX idx_transaccion_orden ON transaccion_pago(id_orden_compra)");
+        DB::statement("CREATE INDEX idx_transaccion_pedido ON transaccion_pago(id_pedido)");
 
         Schema::create('historial_pedido', function (Blueprint $table) {
             $table->id('id_historial');
@@ -104,7 +90,6 @@ return new class extends Migration
         Schema::dropIfExists('transaccion_pago');
         Schema::dropIfExists('detalle_pedido');
         Schema::dropIfExists('pedido');
-        Schema::dropIfExists('orden_compra');
         Schema::dropIfExists('item_carrito');
         Schema::dropIfExists('carrito');
     }

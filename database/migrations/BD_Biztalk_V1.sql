@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS contacto_telefonico CASCADE;
 DROP TABLE IF EXISTS galeria_producto CASCADE;
 DROP TABLE IF EXISTS galeria_sucursal CASCADE;
 DROP TABLE IF EXISTS item_coleccion CASCADE;
@@ -14,7 +15,6 @@ DROP TABLE IF EXISTS transaccion_pago CASCADE;
 DROP TABLE IF EXISTS billetera_usuario CASCADE;
 DROP TABLE IF EXISTS detalle_pedido CASCADE;
 DROP TABLE IF EXISTS pedido CASCADE;
-DROP TABLE IF EXISTS orden_compra CASCADE;
 DROP TABLE IF EXISTS item_carrito CASCADE;
 DROP TABLE IF EXISTS carrito CASCADE;
 DROP TABLE IF EXISTS promocion CASCADE;
@@ -30,6 +30,7 @@ DROP TABLE IF EXISTS direccion_usuario CASCADE;
 DROP TABLE IF EXISTS usuario_rol CASCADE;
 DROP TABLE IF EXISTS rol CASCADE;
 DROP TABLE IF EXISTS usuario CASCADE;
+DROP TYPE IF EXISTS tipo_contacto CASCADE;
 DROP TYPE IF EXISTS tipo_descuento CASCADE;
 DROP TYPE IF EXISTS alcance_promo CASCADE;
 DROP TYPE IF EXISTS tipo_metodo_pago CASCADE;
@@ -51,6 +52,7 @@ CREATE TYPE alcance_promo AS ENUM ('producto', 'sucursal', 'global');
 CREATE TYPE tipo_metodo_pago AS ENUM ('efectivo', 'tarjeta_credito', 'tarjeta_debito', 'qr_bancario', 'billetera_movil');
 CREATE TYPE estado_transaccion AS ENUM ('pendiente', 'aprobado', 'rechazado', 'reembolsado', 'expirado');
 CREATE TYPE proveedor_pago AS ENUM ('stripe', 'cybersource', 'libelula', 'pasarela_qr_local', 'efectivo_manual', 'simulado', 'transferencia_manual');
+CREATE TYPE tipo_contacto AS ENUM ('whatsapp', 'fijo', 'movil', 'fax', 'atencion_cliente');
 
 CREATE TABLE rol (
     id_rol              uuid DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -94,6 +96,7 @@ CREATE TABLE negocio (
     id_negocio          uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     id_propietario      uuid NOT NULL REFERENCES usuario(id_usuario),
     nombre              text NOT NULL,
+    nit                 text UNIQUE,
     descripcion         text,
     logotipo_url        text,
     fecha_registro      timestamptz DEFAULT now(),
@@ -104,13 +107,27 @@ CREATE TABLE sucursal (
     id_sucursal         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     id_negocio          uuid NOT NULL REFERENCES negocio(id_negocio) ON DELETE CASCADE,
     nombre_sucursal     text NOT NULL,
-    telefonos           text[],
     ubicacion_gps       point NOT NULL,
     zona_reparto        polygon,
     direccion_texto     text NOT NULL,
     imagen_qr_estatico_url text,
     imagen_portada_url  text,
     activo              boolean DEFAULT true
+);
+
+CREATE TABLE contacto_telefonico (
+    id_contacto         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    numero              text NOT NULL,
+    tipo                tipo_contacto NOT NULL DEFAULT 'movil',
+    etiqueta            text,
+    es_principal        boolean DEFAULT false,
+    id_negocio          uuid REFERENCES negocio(id_negocio) ON DELETE CASCADE,
+    id_sucursal         uuid REFERENCES sucursal(id_sucursal) ON DELETE CASCADE,
+    fecha_registro      timestamptz DEFAULT now(),
+    CONSTRAINT chk_pertenencia CHECK (
+        (id_negocio IS NOT NULL AND id_sucursal IS NULL) OR
+        (id_negocio IS NULL AND id_sucursal IS NOT NULL)
+    )
 );
 
 CREATE TABLE galeria_sucursal (
@@ -165,7 +182,6 @@ CREATE TABLE producto (
     id_categoria        int REFERENCES categoria(id_categoria),
     nombre              text NOT NULL,
     descripcion         text,
-    codigo_sku          text,
     imagen_url          text,
     precio_base         numeric(12, 2) NOT NULL CHECK (precio_base >= 0),
     vector_busqueda     tsvector GENERATED ALWAYS AS (
@@ -219,6 +235,7 @@ CREATE TABLE promocion (
 CREATE TABLE carrito (
     id_carrito          uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     id_usuario          uuid NOT NULL REFERENCES usuario(id_usuario),
+    id_sucursal_activa  uuid REFERENCES sucursal(id_sucursal),
     ultima_modificacion timestamptz DEFAULT now(),
     CONSTRAINT uq_carrito_usuario UNIQUE (id_usuario)
 );
@@ -227,7 +244,6 @@ CREATE TABLE item_carrito (
     id_item             bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_carrito          uuid NOT NULL REFERENCES carrito(id_carrito) ON DELETE CASCADE,
     id_producto         uuid NOT NULL REFERENCES producto(id_producto),
-    id_sucursal_origen  uuid NOT NULL REFERENCES sucursal(id_sucursal),
     cantidad            int NOT NULL CHECK (cantidad > 0),
     observacion         text,
     fecha_agregado      timestamptz DEFAULT now()
@@ -243,19 +259,8 @@ CREATE TABLE item_guardado (
     fecha_guardado      timestamptz DEFAULT now()
 );
 
-CREATE TABLE orden_compra (
-    id_orden_compra     uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    id_usuario          uuid NOT NULL REFERENCES usuario(id_usuario),
-    importe_productos_total numeric(12, 2) NOT NULL DEFAULT 0,
-    importe_delivery_total  numeric(12, 2) NOT NULL DEFAULT 0,
-    importe_descuento_total numeric(12, 2) NOT NULL DEFAULT 0,
-    importe_final_total     numeric(12, 2) NOT NULL DEFAULT 0,
-    fecha_registro      timestamptz DEFAULT now()
-);
-
 CREATE TABLE pedido (
     id_pedido           uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    id_orden_compra     uuid NOT NULL REFERENCES orden_compra(id_orden_compra) ON DELETE CASCADE,
     numero_orden_publico bigint GENERATED ALWAYS AS IDENTITY,
     id_sucursal         uuid NOT NULL REFERENCES sucursal(id_sucursal),
     id_usuario          uuid NOT NULL REFERENCES usuario(id_usuario),
@@ -287,7 +292,6 @@ CREATE TABLE uso_promocion (
     id_uso              uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     id_promocion        uuid NOT NULL REFERENCES promocion(id_promocion),
     id_usuario          uuid NOT NULL REFERENCES usuario(id_usuario),
-    id_orden_compra     uuid REFERENCES orden_compra(id_orden_compra),
     id_pedido           uuid REFERENCES pedido(id_pedido),
     monto_ahorrado      numeric(12, 2) NOT NULL,
     fecha_uso           timestamptz DEFAULT now()
@@ -319,7 +323,7 @@ CREATE TABLE billetera_usuario (
 
 CREATE TABLE transaccion_pago (
     id_transaccion      uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    id_orden_compra     uuid NOT NULL REFERENCES orden_compra(id_orden_compra),
+    id_pedido           uuid NOT NULL REFERENCES pedido(id_pedido),
     tipo_metodo         tipo_metodo_pago NOT NULL,
     id_metodo_guardado  uuid REFERENCES billetera_usuario(id_metodo),
     monto_total         numeric(12, 2) NOT NULL,
@@ -406,25 +410,24 @@ CREATE INDEX idx_producto_vector ON producto USING GIN (vector_busqueda);
 CREATE INDEX idx_sucursal_geo ON sucursal USING GIST (ubicacion_gps);
 CREATE INDEX idx_usuario_telefono ON usuario(telefono);
 CREATE INDEX idx_pedido_numero_publico ON pedido(numero_orden_publico);
-CREATE INDEX idx_pedido_orden_padre ON pedido(id_orden_compra);
 CREATE INDEX idx_pedido_sucursal_estado ON pedido (id_sucursal, fecha_creacion) WHERE estado = 'pendiente';
 CREATE INDEX idx_inventario_sucursal ON inventario(id_sucursal);
 CREATE INDEX idx_horario_sucursal ON horario(id_sucursal);
 CREATE INDEX idx_config_entrega_sucursal ON config_entrega(id_sucursal) WHERE activo = true;
 CREATE INDEX idx_colaborador_usuario ON colaborador(id_usuario);
-CREATE INDEX idx_item_carrito_sucursal ON item_carrito(id_sucursal_origen);
 CREATE INDEX idx_item_guardado_usuario ON item_guardado(id_usuario);
 CREATE INDEX idx_billetera_usuario ON billetera_usuario(id_usuario) WHERE activo = true;
 CREATE INDEX idx_historial_usuario_fecha ON historial_vista(id_usuario, fecha_vista DESC);
 CREATE INDEX idx_coleccion_usuario ON coleccion(id_usuario_destino) WHERE activo = true;
-CREATE INDEX idx_transaccion_orden ON transaccion_pago(id_orden_compra);
+CREATE INDEX idx_transaccion_pedido ON transaccion_pago(id_pedido);
 CREATE INDEX idx_promocion_activa ON promocion(activo, fecha_inicio, fecha_fin);
 CREATE INDEX idx_lista_deseos_usuario ON lista_deseos(id_usuario);
 CREATE INDEX idx_direccion_uso ON direccion_usuario(id_usuario, ultima_fecha_uso DESC);
 CREATE INDEX idx_galeria_sucursal ON galeria_sucursal(id_sucursal);
 CREATE INDEX idx_galeria_producto ON galeria_producto(id_producto);
+CREATE INDEX idx_contacto_entidad ON contacto_telefonico(id_sucursal, id_negocio);
 
 INSERT INTO rol (nombre, descripcion) VALUES
-('usuario',  'Rol base por defecto al registrarse'),
-('dueño',    'Rol asignado al crear un negocio. Permite gestionar sucursales'),
-('empleado', 'Rol asignado al ser contratado. Permite operar pedidos');
+('usuario',  'Rol base por defecto'),
+('dueño',    'Propietario de un negocio'),
+('empleado', 'Trabajador de sucursal');

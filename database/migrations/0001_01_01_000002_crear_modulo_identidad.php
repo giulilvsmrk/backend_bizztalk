@@ -17,9 +17,9 @@ return new class extends Migration
         });
 
         DB::table('rol')->insert([
-            ['id_rol' => DB::raw('gen_random_uuid()'), 'nombre' => 'usuario',  'descripcion' => 'Rol base', 'activo' => true],
-            ['id_rol' => DB::raw('gen_random_uuid()'), 'nombre' => 'dueño',    'descripcion' => 'Rol dueño negocio', 'activo' => true],
-            ['id_rol' => DB::raw('gen_random_uuid()'), 'nombre' => 'empleado', 'descripcion' => 'Rol empleado', 'activo' => true],
+            ['id_rol' => DB::raw('gen_random_uuid()'), 'nombre' => 'usuario',  'descripcion' => 'Rol base por defecto', 'activo' => true],
+            ['id_rol' => DB::raw('gen_random_uuid()'), 'nombre' => 'dueño',    'descripcion' => 'Propietario de un negocio', 'activo' => true],
+            ['id_rol' => DB::raw('gen_random_uuid()'), 'nombre' => 'empleado', 'descripcion' => 'Trabajador de sucursal', 'activo' => true],
         ]);
 
         Schema::create('usuario', function (Blueprint $table) {

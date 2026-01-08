@@ -7,15 +7,13 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('negocio', function (Blueprint $table) {
             $table->uuid('id_negocio')->primary()->default(DB::raw('gen_random_uuid()'));
             $table->foreignUuid('id_propietario')->constrained('usuario', 'id_usuario');
             $table->text('nombre');
+            $table->text('nit')->nullable()->unique(); // NUEVO
             $table->text('descripcion')->nullable();
             $table->text('logotipo_url')->nullable();
             $table->timestampTz('fecha_registro')->default(DB::raw('now()'));
@@ -26,7 +24,6 @@ return new class extends Migration
             $table->uuid('id_sucursal')->primary()->default(DB::raw('gen_random_uuid()'));
             $table->foreignUuid('id_negocio')->constrained('negocio', 'id_negocio')->cascadeOnDelete();
             $table->text('nombre_sucursal');
-            $table->text('telefonos')->nullable();
             $table->text('direccion_texto');
             $table->text('imagen_qr_estatico_url')->nullable();
             $table->text('imagen_portada_url')->nullable();
@@ -35,6 +32,24 @@ return new class extends Migration
         DB::statement('ALTER TABLE sucursal ADD COLUMN ubicacion_gps point NOT NULL');
         DB::statement('ALTER TABLE sucursal ADD COLUMN zona_reparto polygon');
         DB::statement('CREATE INDEX idx_sucursal_geo ON sucursal USING GIST (ubicacion_gps)');
+
+        Schema::create('contacto_telefonico', function (Blueprint $table) {
+            $table->uuid('id_contacto')->primary()->default(DB::raw('gen_random_uuid()'));
+            $table->text('numero');
+            $table->text('etiqueta')->nullable();
+            $table->boolean('es_principal')->default(false);
+            $table->foreignUuid('id_negocio')->nullable()->constrained('negocio', 'id_negocio')->cascadeOnDelete();
+            $table->foreignUuid('id_sucursal')->nullable()->constrained('sucursal', 'id_sucursal')->cascadeOnDelete();
+            $table->timestampTz('fecha_registro')->default(DB::raw('now()'));
+        });
+        DB::statement("ALTER TABLE contacto_telefonico ADD COLUMN tipo tipo_contacto NOT NULL DEFAULT 'movil'");
+        DB::statement("
+            ALTER TABLE contacto_telefonico ADD CONSTRAINT chk_pertenencia CHECK (
+                (id_negocio IS NOT NULL AND id_sucursal IS NULL) OR
+                (id_negocio IS NULL AND id_sucursal IS NOT NULL)
+            )
+        ");
+        DB::statement("CREATE INDEX idx_contacto_entidad ON contacto_telefonico(id_sucursal, id_negocio)");
 
         Schema::create('config_entrega', function (Blueprint $table) {
             $table->uuid('id_config')->primary()->default(DB::raw('gen_random_uuid()'));
@@ -81,7 +96,6 @@ return new class extends Migration
             $table->foreignId('id_categoria')->nullable()->constrained('categoria', 'id_categoria');
             $table->text('nombre');
             $table->text('descripcion')->nullable();
-            $table->text('codigo_sku')->nullable();
             $table->text('imagen_url')->nullable();
             $table->decimal('precio_base', 12, 2);
             $table->boolean('activo')->default(true);
@@ -115,7 +129,6 @@ return new class extends Migration
             $table->integer('orden_visual')->default(0);
             $table->timestampTz('fecha_subida')->default(DB::raw('now()'));
         });
-
         DB::statement("CREATE INDEX idx_galeria_sucursal ON galeria_sucursal(id_sucursal)");
 
         Schema::create('galeria_producto', function (Blueprint $table) {
@@ -125,13 +138,9 @@ return new class extends Migration
             $table->integer('orden_visual')->default(0);
             $table->timestampTz('fecha_subida')->default(DB::raw('now()'));
         });
-
         DB::statement("CREATE INDEX idx_galeria_producto ON galeria_producto(id_producto)");
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('galeria_producto');
@@ -142,6 +151,7 @@ return new class extends Migration
         Schema::dropIfExists('colaborador');
         Schema::dropIfExists('horario');
         Schema::dropIfExists('config_entrega');
+        Schema::dropIfExists('contacto_telefonico');
         Schema::dropIfExists('sucursal');
         Schema::dropIfExists('negocio');
     }
