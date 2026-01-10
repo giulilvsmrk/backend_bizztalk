@@ -40,10 +40,11 @@ return new class extends Migration
             $table->text('observacion')->nullable();
             $table->timestampTz('fecha_agregado')->default(DB::raw('now()'));
         });
+        DB::statement("ALTER TABLE item_carrito ADD CONSTRAINT chk_cantidad_item CHECK (cantidad > 0)");
 
         Schema::create('pedido', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
-            $table->bigInteger('numero_orden_publico')->generatedAlways()->always();
+            $table->bigInteger('numero_orden_publico')->unique();
             $table->foreignUuid('id_sucursal')->constrained('sucursal', 'id');
             $table->foreignUuid('id_usuario')->constrained('usuario', 'id');
             $table->decimal('importe_subtotal', 12, 2)->default(0);
@@ -55,11 +56,12 @@ return new class extends Migration
             $table->timestampTz('fecha_creacion')->default(DB::raw('now()'));
             $table->timestampTz('fecha_actualizacion')->default(DB::raw('now()'));
         });
+        DB::statement("ALTER TABLE pedido ALTER COLUMN numero_orden_publico ADD GENERATED ALWAYS AS IDENTITY");
         DB::statement('ALTER TABLE pedido ADD COLUMN ubicacion_entrega point');
         DB::statement("ALTER TABLE pedido ADD COLUMN estado estado_pedido DEFAULT 'pendiente'");
         DB::statement("ALTER TABLE pedido ADD COLUMN canal canal_venta NOT NULL");
         DB::statement("ALTER TABLE pedido ADD COLUMN tipo_entrega tipo_entrega NOT NULL");
-        DB::statement("CREATE INDEX idx_pedido_numero ON pedido(numero_orden_publico)");
+        DB::statement("CREATE INDEX idx_pedido_numero_publico ON pedido(numero_orden_publico)");
 
         Schema::create('detalle_pedido', function (Blueprint $table) {
             $table->id();
@@ -70,6 +72,8 @@ return new class extends Migration
             $table->decimal('precio_original', 12, 2)->nullable();
             $table->decimal('descuento_aplicado', 12, 2)->default(0);
         });
+        DB::statement("ALTER TABLE detalle_pedido ADD CONSTRAINT chk_cantidad_detalle CHECK (cantidad > 0)");
+        DB::statement("ALTER TABLE detalle_pedido ADD CONSTRAINT chk_precio_unitario CHECK (precio_unitario >= 0)");
         DB::statement("
             ALTER TABLE detalle_pedido
             ADD COLUMN subtotal decimal(12, 2)
@@ -100,6 +104,9 @@ return new class extends Migration
         });
         DB::statement("ALTER TABLE transaccion_pago ADD COLUMN tipo_metodo tipo_metodo_pago NOT NULL");
         DB::statement("ALTER TABLE transaccion_pago ADD COLUMN estado estado_transaccion DEFAULT 'pendiente'");
+        DB::statement("CREATE INDEX idx_billetera_usuario ON billetera_usuario(id_usuario) WHERE activo = true");
+        DB::statement("CREATE INDEX idx_pedido_sucursal_estado ON pedido (id_sucursal, fecha_creacion) WHERE estado = 'pendiente'");
+        DB::statement("CREATE INDEX idx_transaccion_pedido ON transaccion_pago(id_pedido)");
     }
 
     public function down(): void

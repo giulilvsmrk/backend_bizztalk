@@ -32,6 +32,9 @@ return new class extends Migration
             (alcance = 'sucursal' AND id_sucursal IS NOT NULL AND id_producto IS NULL) OR
             (alcance = 'producto' AND id_producto IS NOT NULL)
         )");
+        DB::statement("ALTER TABLE promocion ADD CONSTRAINT chk_fechas_promo CHECK (fecha_fin > fecha_inicio)");
+        DB::statement("ALTER TABLE promocion ADD CONSTRAINT chk_valor_descuento CHECK (valor_descuento >= 0)");
+        DB::statement("ALTER TABLE promocion ADD CONSTRAINT chk_monto_minimo CHECK (monto_minimo_compra >= 0)");
 
         Schema::create('uso_promocion', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
@@ -59,6 +62,7 @@ return new class extends Migration
             $table->text('observacion')->nullable();
             $table->timestampTz('fecha_guardado')->default(DB::raw('now()'));
         });
+        DB::statement("ALTER TABLE item_guardado ADD CONSTRAINT chk_cantidad_guardada CHECK (cantidad > 0)");
 
         Schema::create('resena_producto', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
@@ -70,6 +74,7 @@ return new class extends Migration
             $table->timestampTz('fecha_registro')->default(DB::raw('now()'));
             $table->unique(['id_usuario', 'id_detalle_pedido']);
         });
+        DB::statement("ALTER TABLE resena_producto ADD CONSTRAINT chk_puntuacion_prod CHECK (puntuacion BETWEEN 1 AND 5)");
 
         Schema::create('resena_sucursal', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
@@ -77,11 +82,12 @@ return new class extends Migration
             $table->foreignUuid('id_sucursal')->constrained('sucursal', 'id');
             $table->foreignUuid('id_pedido')->constrained('pedido', 'id');
             $table->integer('puntuacion');
-            $table->text('aspectos_positivos')->nullable();
-            $table->text('comentario')->nullable();
-            $table->timestampTz('fecha_registro')->default(DB::raw('now()'));
-            $table->unique(['id_usuario', 'id_pedido']);
         });
+        DB::statement('ALTER TABLE resena_sucursal ADD COLUMN aspectos_positivos TEXT[]');
+        DB::statement('ALTER TABLE resena_sucursal ADD COLUMN comentario TEXT');
+        DB::statement("ALTER TABLE resena_sucursal ADD COLUMN fecha_registro TIMESTAMPTZ DEFAULT now()");
+        DB::statement("ALTER TABLE resena_sucursal ADD CONSTRAINT resena_sucursal_unique UNIQUE (id_usuario, id_pedido)");
+        DB::statement("ALTER TABLE resena_sucursal ADD CONSTRAINT chk_puntuacion_suc CHECK (puntuacion BETWEEN 1 AND 5)");
 
         Schema::create('coleccion', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
@@ -127,6 +133,12 @@ return new class extends Migration
             ) PARTITION BY RANGE (fecha_vista)
         ");
         DB::statement("CREATE TABLE historial_vista_2025 PARTITION OF historial_vista FOR VALUES FROM ('2025-01-01') TO ('2026-01-01')");
+        DB::statement("CREATE INDEX idx_item_guardado_usuario ON item_guardado(id_usuario)");
+        DB::statement("CREATE INDEX idx_lista_deseos_usuario ON lista_deseos(id_usuario)");
+        DB::statement("CREATE INDEX idx_historial_usuario_fecha ON historial_vista(id_usuario, fecha_vista DESC)");
+        DB::statement("CREATE INDEX idx_coleccion_usuario ON coleccion(id_usuario_destino) WHERE activo = true");
+        DB::statement("CREATE INDEX idx_resena_producto_usuario ON resena_producto(id_usuario)");
+        DB::statement("CREATE INDEX idx_promocion_activa ON promocion(activo, fecha_inicio, fecha_fin)");
     }
 
     public function down(): void

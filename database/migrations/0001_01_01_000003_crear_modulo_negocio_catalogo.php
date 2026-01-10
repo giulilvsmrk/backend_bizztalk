@@ -46,6 +46,7 @@ return new class extends Migration
             $table->timestampTz('fecha_eliminacion')->nullable();
         });
         DB::statement('ALTER TABLE zona_cobertura ADD COLUMN area polygon NOT NULL');
+        DB::statement("ALTER TABLE zona_cobertura ADD CONSTRAINT chk_costo_envio CHECK (costo_envio >= 0)");
         DB::statement('CREATE INDEX idx_zona_cobertura_area ON zona_cobertura USING GIST (area)');
 
         Schema::create('contacto_telefonico', function (Blueprint $table) {
@@ -70,6 +71,7 @@ return new class extends Migration
             $table->unique(['id_sucursal', 'dia_semana']);
         });
         DB::statement("ALTER TABLE horario ADD CONSTRAINT chk_horas CHECK (hora_cierre > hora_apertura)");
+        DB::statement("ALTER TABLE horario ADD CONSTRAINT chk_dia_semana CHECK (dia_semana BETWEEN 0 AND 6)");
 
         Schema::create('config_entrega', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
@@ -81,6 +83,7 @@ return new class extends Migration
             $table->boolean('activo')->default(true);
         });
         DB::statement("ALTER TABLE config_entrega ADD COLUMN tipo tipo_entrega NOT NULL");
+        DB::statement("ALTER TABLE config_entrega ADD CONSTRAINT chk_costo_base CHECK (costo_base >= 0)");
         DB::statement("ALTER TABLE config_entrega ADD CONSTRAINT config_entrega_unique UNIQUE (id_sucursal, tipo, alias_personalizado)");
 
         Schema::create('colaborador', function (Blueprint $table) {
@@ -111,6 +114,7 @@ return new class extends Migration
             $table->timestampTz('fecha_creacion')->default(DB::raw('now()'));
             $table->timestampTz('fecha_eliminacion')->nullable();
         });
+        DB::statement("ALTER TABLE producto ADD CONSTRAINT chk_precio_base CHECK (precio_base >= 0)");
         DB::statement("ALTER TABLE producto ADD COLUMN vector_busqueda tsvector");
         DB::statement("
             CREATE OR REPLACE FUNCTION actualizar_vector_busqueda_producto() RETURNS TRIGGER AS $$
@@ -123,12 +127,12 @@ return new class extends Migration
             $$ LANGUAGE plpgsql;
         ");
         DB::statement("
-            CREATE TRIGGER tr_actualizar_vector_busqueda_producto
+            CREATE TRIGGER trg_vector_busqueda_producto
             BEFORE INSERT OR UPDATE ON producto
-            FOR EACH ROW EXECUTE FUNCTION actualizar_vector_busqueda_producto();
+            FOR EACH ROW
+            EXECUTE FUNCTION actualizar_vector_busqueda_producto();
         ");
         DB::statement("CREATE INDEX idx_producto_vector ON producto USING GIN (vector_busqueda)");
-
 
         Schema::create('inventario', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
@@ -140,6 +144,8 @@ return new class extends Migration
             $table->timestampTz('ultima_actualizacion')->default(DB::raw('now()'));
             $table->unique(['id_sucursal', 'id_producto']);
         });
+        DB::statement("ALTER TABLE inventario ADD CONSTRAINT chk_cantidad CHECK (cantidad >= 0)");
+        DB::statement("ALTER TABLE inventario ADD CONSTRAINT chk_precio_local CHECK (precio_local >= 0)");
 
         Schema::create('galeria_sucursal', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
@@ -157,15 +163,25 @@ return new class extends Migration
             $table->integer('orden_visual')->default(0);
             $table->timestampTz('fecha_subida')->default(DB::raw('now()'));
         });
+
+        DB::statement("CREATE INDEX idx_colaborador_usuario ON colaborador(id_usuario)");
+        DB::statement("CREATE INDEX idx_inventario_sucursal ON inventario(id_sucursal)");
+        DB::statement("CREATE INDEX idx_horario_sucursal ON horario(id_sucursal)");
+        DB::statement("CREATE INDEX idx_config_entrega_sucursal ON config_entrega(id_sucursal) WHERE activo = true");
+        DB::statement("CREATE INDEX idx_zona_cobertura_sucursal ON zona_cobertura(id_sucursal)");
+        DB::statement("CREATE INDEX idx_galeria_sucursal ON galeria_sucursal(id_sucursal)");
+        DB::statement("CREATE INDEX idx_galeria_producto ON galeria_producto(id_producto)");
+        DB::statement("CREATE INDEX idx_contacto_entidad ON contacto_telefonico(id_sucursal, id_negocio)");
     }
 
     public function down(): void
     {
+        DB::statement('DROP TRIGGER IF EXISTS trg_vector_busqueda_producto ON producto');
+        DB::statement('DROP FUNCTION IF EXISTS actualizar_vector_busqueda_producto');
+
         Schema::dropIfExists('galeria_producto');
         Schema::dropIfExists('galeria_sucursal');
         Schema::dropIfExists('inventario');
-        DB::statement("DROP TRIGGER IF EXISTS tr_actualizar_vector_busqueda_producto ON producto");
-        DB::statement("DROP FUNCTION IF EXISTS actualizar_vector_busqueda_producto");
         Schema::dropIfExists('producto');
         Schema::dropIfExists('categoria');
         Schema::dropIfExists('colaborador');

@@ -37,6 +37,7 @@ return new class extends Migration
             $table->timestampTz('fecha_eliminacion')->nullable();
         });
         DB::statement('ALTER TABLE usuario ADD COLUMN ubicacion_actual point');
+        DB::statement('CREATE INDEX idx_usuario_telefono ON usuario(telefono)');
 
         Schema::create('usuario_rol', function (Blueprint $table) {
             $table->foreignUuid('id_usuario')->constrained('usuario', 'id')->cascadeOnDelete();
