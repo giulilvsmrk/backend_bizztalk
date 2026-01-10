@@ -1,44 +1,45 @@
 <?php
-
+declare(strict_types=1);
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
- */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
+    protected $model = User::class;
 
     /**
-     * Define the model's default state.
+     * Define el estado por defecto del modelo.
      *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
+        $lat = fake()->latitude(-16.5, -16.4);
+        $lng = fake()->longitude(-68.2, -68.1);
+
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'id' => fake()->uuid(),
+            'nombres' => fake()->firstName(),
+            'apellidos' => fake()->lastName(),
+            'correo' => fake()->unique()->safeEmail(),
+            'password_hash' => Hash::make('password'),
+            'telefono' => fake()->unique()->phoneNumber(),
+            'ubicacion_actual' => DB::raw("point($lat, $lng)"),
+            'activo' => true,
+            'fecha_creacion' => now(),
+            'fecha_actualizacion' => now(),
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
+    public function eliminado(): static
     {
         return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
+            'activo' => false,
+            'fecha_eliminacion' => now(),
         ]);
     }
 }
