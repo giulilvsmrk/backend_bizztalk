@@ -72,8 +72,8 @@ class productoController extends Controller
 
         // Buscar la categoría dentro del negocio
         $categoria = Categoria::where('id_negocio', $negocioId)
-            ->when($request->filled('category_id'), fn($q) => $q->where('id', $request->query('category_id'))) 
-            ->when($request->filled('name'), fn($q) => $q->where('nombre', $request->query('name')))
+            ->when($request->filled('category_id'), fn($q) => $q->where('id', $request->query('category_id'))) // filtrar por ID si se proporciona
+            ->when($request->filled('name'), fn($q) => $q->where('nombre', $request->query('name'))) // filtrar por nombre si se proporciona
             ->first();
 
         if (!$categoria) {
