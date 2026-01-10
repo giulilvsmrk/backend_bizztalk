@@ -6,57 +6,103 @@ use App\Http\Controllers\Controller;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
 use App\Models\Producto;
+use App\Models\Inventario;
+use App\Models\Sucursal;
+use App\Models\Negocio;
 
 class productoController extends Controller
 {
-    public function index($id) // id del negocio
+    // listar todos los productos de un negocio
+    public function index($negocioId) // id del negocio
     {
-        $productos = Producto::where('id_negocio', $id)->get(); //
-        if ($productos->isEmpty()) {
+        // verificar que el negocio existe (opcional)
+        $negocio = Negocio::find($negocioId);
+        if (is_null($negocio)) {
             $data = [
-                'message' => 'No hay productos disponibles',
-                'status' => 200,
-            ];
-            return response()->json($data, 404);
-        }else{
-            return response()->json(['products' => $productos]);
-        }
-    }
-
-    public function show($producto_id)
-    {
-        $producto = Producto::where("id_producto",$producto_id); // Buscar el producto por su ID
-        if (!$producto) {
-            $data = [
-                'message' => 'Producto no encontrado',
+                'message' => 'Negocio no encontrado',
                 'status' => 404,
             ];
             return response()->json($data, 404);
+        } else {
+            $productos = Producto::where('id_negocio', $negocioId)->get(); //
+            if ($productos->isEmpty()) {
+                $data = [
+                    'message' => 'No hay productos disponibles',
+                    'status' => 200,
+                ];
+                return response()->json($data, 404);
+            } else {
+                return response()->json(['products' => $productos]);
+            }
         }
-
-        $data = [
-            'message' => 'Producto encontrado',
-            'status' => 200,
-            'product' => $producto,
-        ];
-        // Lógica para obtener y retornar un producto específico por su ID
-        return response()->json($data, 200);
     }
 
-    public function showCategoria(Request $request)
+    // Obtener un producto específico de un negocio
+    public function show($negocioId, $producto_id)
     {
-        $categoria = $request->get('name'); // obtener el nombre de la categoría desde los parámetros de la solicitud
-        $id_Categoria = Categoria::where('nombre', $categoria)->value('id'); // obtener el ID de la categoría por su nombre
-        $productos = Producto::where('id_categoria', $id_Categoria)->get(); // obtener productos por categoría
+        $producto = Producto::where('id', $producto_id)
+            ->where('id_negocio', $negocioId)
+            ->first();
 
-        if ($productos->isEmpty()) {
+        if (!$producto) {
             $data = [
-                'message' => 'No hay productos disponibles en esta categoría',
-                'status' => 200,
+                'message' => 'Producto no encontrado para este negocio',
+                'status' => 404,
             ];
             return response()->json($data, 404);
         } else {
-            return response()->json(['products' => $productos]);
+            return response()->json(['product' => $producto]);
         }
+    }
+
+    // Obtener productos por categoría de un negocio
+    public function showCategoria($negocioId, Request $request)
+    {
+        // Validar parámetros: se acepta 'name' (nombre) o 'category_id'
+        $request->validate([
+            'name' => 'sometimes|string',
+            'category_id' => 'sometimes|integer',
+        ]);
+
+        if (!$request->filled('name') && !$request->filled('category_id')) { // ninguno de los dos parámetros está presente
+            return response()->json([
+                'message' => 'Se requiere el parámetro query "name" o "category_id"'
+            ], 422);
+        }
+
+        // Buscar la categoría dentro del negocio
+        $categoria = Categoria::where('id_negocio', $negocioId)
+            ->when($request->filled('category_id'), fn($q) => $q->where('id', $request->query('category_id'))) 
+            ->when($request->filled('name'), fn($q) => $q->where('nombre', $request->query('name')))
+            ->first();
+
+        if (!$categoria) {
+            return response()->json([
+                'message' => 'Categoría no encontrada para este negocio'
+            ], 404);
+        }
+
+        // Obtener productos mediante la relación Eloquent
+        $productos = $categoria->productos()->get();
+
+        // Obtener stock en la sucursal asociada al negocio (si existe)
+        $idSucursal = Sucursal::where('id_negocio', $negocioId)->value('id');
+        if ($idSucursal && $productos->isNotEmpty()) {
+            $stock = Inventario::where('id_sucursal', $idSucursal)
+                        ->whereIn('id_producto', $productos->pluck('id'))
+                        ->get();
+        } else {
+            $stock = collect();
+        }
+
+        return response()->json([
+            'category' => [
+                'id' => $categoria->id,
+                'name' => $categoria->nombre,
+            ],
+            'products' => $productos,
+            'stock' => $stock,
+            'count' => $productos->count(),
+        ], 200);
     }
 }
