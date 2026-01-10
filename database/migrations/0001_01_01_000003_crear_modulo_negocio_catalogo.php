@@ -163,7 +163,6 @@ return new class extends Migration
             $table->integer('orden_visual')->default(0);
             $table->timestampTz('fecha_subida')->default(DB::raw('now()'));
         });
-
         DB::statement("CREATE INDEX idx_colaborador_usuario ON colaborador(id_usuario)");
         DB::statement("CREATE INDEX idx_inventario_sucursal ON inventario(id_sucursal)");
         DB::statement("CREATE INDEX idx_horario_sucursal ON horario(id_sucursal)");
