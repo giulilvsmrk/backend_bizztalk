@@ -14,18 +14,18 @@ use App\Modules\MessagingOrders\Exceptions\NegocioNotFoundException;
  * ChatService
  * 
  * Servicio orquestador que coordina todo el flujo del chat.
- * Conecta OllamaService y PromptBuilder.
+ * Conecta SpaceLLMService y PromptBuilder.
  */
 class ChatService
 {
-    private OllamaService $ollamaService;
+    private SpaceLLMService $spaceLLMService;
     private PromptBuilder $promptBuilder;
 
     public function __construct(
-        OllamaService $ollamaService,
+        SpaceLLMService $spaceLLMService,
         PromptBuilder $promptBuilder
     ) {
-        $this->ollamaService = $ollamaService;
+        $this->spaceLLMService = $spaceLLMService;
         $this->promptBuilder = $promptBuilder;
     }
 
@@ -53,7 +53,7 @@ class ChatService
             );
 
             // Generar respuesta
-            $respuestaBot = $this->ollamaService->generateResponse($prompt);
+            $respuestaBot = $this->spaceLLMService->generateResponse($prompt);
 
             // Guardar en BD
             $chat = $this->guardarChat(
@@ -134,8 +134,18 @@ class ChatService
         ]);
     }
 
-    public function obtenerEstadoOllama(): array
+    public function obtenerEstadoSpaceLLM(): array
     {
-        return $this->ollamaService->obtenerInfo();
+        try {
+            return [
+                'conectado' => $this->spaceLLMService->verificarConexion(),
+                'info' => $this->spaceLLMService->getInfo(),
+            ];
+        } catch (\Exception $e) {
+            return [
+                'conectado' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
     }
 }
