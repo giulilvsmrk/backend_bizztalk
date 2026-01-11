@@ -30,8 +30,8 @@ return new class extends Migration
             $table->text('apellidos');
             $table->text('correo')->nullable()->unique();
             $table->text('password_hash');
-            $table->text('telefono')->unique();
-            $table->boolean('activo')->default(true);
+            $table->text('telefono')->nullable();
+            $table->boolean('activo')->default(false);
             $table->timestampTz('fecha_creacion')->default(DB::raw('now()'));
             $table->timestampTz('fecha_actualizacion')->default(DB::raw('now()'));
             $table->timestampTz('fecha_eliminacion')->nullable();
@@ -57,7 +57,7 @@ return new class extends Migration
             $table->timestampTz('fecha_creacion')->default(DB::raw('now()'));
             $table->timestampTz('fecha_eliminacion')->nullable();
         });
-        DB::statement('ALTER TABLE direccion_usuario ADD COLUMN ubicacion_gps point NOT NULL');
+        DB::statement('ALTER TABLE direccion_usuario ADD COLUMN ubicacion_gps point');
         DB::statement("CREATE INDEX idx_direccion_uso ON direccion_usuario(id_usuario, ultima_fecha_uso DESC)");
     }
 
