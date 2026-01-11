@@ -81,7 +81,7 @@ class ChatService
             return [
                 'exito' => false,
                 'error' => 'Servicio IA no disponible',
-                'codigo' => 'OLLAMA_NO_DISPONIBLE'
+                'codigo' => 'SPACELLM_NO_DISPONIBLE'
             ];
         } catch (OllamaGenerationException $e) {
             return [
@@ -130,7 +130,7 @@ class ChatService
             'mensaje_usuario' => $mensajeUsuario,
             'respuesta_bot' => $respuestaBot,
             'activo' => true,
-            'metadata' => ['modelo' => 'mistral']
+            'metadata' => ['modelo' => 'tinyllama']
         ]);
     }
 
