@@ -63,6 +63,7 @@ class VirtualAssistantService
                 'system_prompt' => $systemPrompt,
                 'stores' => $storesData,
                 'session_id' => $sessionId,
+                'context' => 'Cliente en sesión de compra',
                 'temperature' => 0.7,
                 'max_tokens' => 256
             ];
