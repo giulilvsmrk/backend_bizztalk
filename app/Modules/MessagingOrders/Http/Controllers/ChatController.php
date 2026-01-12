@@ -7,6 +7,7 @@ namespace App\Modules\MessagingOrders\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Modules\MessagingOrders\Http\Requests\SendChatMessageRequest;
+use App\Modules\MessagingOrders\Http\Requests\ConfirmarPedidoRequest;
 use App\Modules\MessagingOrders\Services\ChatService;
 
 /**
@@ -54,4 +55,34 @@ class ChatController extends Controller
         ], 400);
     }
 
-}
+    /**
+     * POST /api/ai/chat/confirmar-pedido
+     * Confirmar y guardar pedido desde el chat
+     */
+    public function confirmarPedido(ConfirmarPedidoRequest $request): JsonResponse
+    {
+        $datos = $request->validated();
+
+        $resultado = $this->chatService->confirmarPedido(
+            sessionId: $datos['session_id'],
+            idNegocio: $datos['business_id'],
+            carrito: $datos['carrito'],
+            total: $datos['total']
+        );
+
+        if ($resultado['exito']) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'pedido_id' => $resultado['pedido_id'],
+                    'total' => $resultado['total']
+                ]
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'error' => $resultado['error']
+        ], 400);
+    }
+
