@@ -37,11 +37,12 @@ class ChatService
     public function procesarMensaje(
         string $idNegocio,
         string $mensajeUsuario,
-        int $limitHistorial = 5
+        int $limitHistorial = 5,
+        string $sessionId = null
     ): array {
         try {
-            // Generar session_id
-            $sessionId = 'session_' . Str::uuid();
+            // Generar o usar session_id existente
+            $sessionId = $sessionId ?? 'session_' . Str::uuid();
 
             // Obtener negocios y productos de BD
             $storesData = $this->construirDatosNegocios();
