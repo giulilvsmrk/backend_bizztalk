@@ -40,36 +40,41 @@ class ChatService
         int $limitHistorial = 5
     ): array {
         try {
-            // Obtener negocio
-            $negocio = $this->obtenerNegocio($idNegocio);
+            // Generar session_id
+            $sessionId = 'session_' . Str::uuid();
 
-            // Obtener historial
-            $historial = $this->obtenerHistorial($idNegocio, $limitHistorial);
-            $historialFormateado = $this->promptBuilder->formatearHistorial($historial);
+            // Obtener negocios y productos de BD
+            $storesData = $this->construirDatosNegocios();
+            
+            if (empty($storesData)) {
+                throw new NegocioNotFoundException("No hay negocios disponibles");
+            }
 
-            // Construir prompt
-            $prompt = $this->promptBuilder->construirPromptCompleto(
-                negocio: $negocio,
-                mensajeUsuario: $mensajeUsuario,
-                historial: $historialFormateado
+            // Procesar mensaje con Asistente Virtual
+            $respuestaAsistente = $this->assistantService->processMessage(
+                storesData: $storesData,
+                userPrompt: $mensajeUsuario,
+                sessionId: $sessionId,
+                systemPrompt: "Eres un asistente de pedidos amable y profesional."
             );
-
-            // Generar respuesta
-            $respuestaBot = $this->spaceLLMService->generateResponse($prompt);
 
             // Guardar en BD
             $chat = $this->guardarChat(
                 idNegocio: $idNegocio,
                 mensajeUsuario: $mensajeUsuario,
-                respuestaBot: $respuestaBot
+                respuestaBot: $respuestaAsistente['response'],
+                sessionId: $sessionId
             );
 
             return [
                 'exito' => true,
                 'datos' => [
-                    'respuesta' => $respuestaBot,
+                    'respuesta' => $respuestaAsistente['response'],
                     'id_chat' => $chat->id,
                     'timestamp' => $chat->fecha_creacion->toIso8601String(),
+                    'estado' => $respuestaAsistente['current_state'] ?? null,
+                    'carrito' => $respuestaAsistente['cart'] ?? [],
+                    'session_id' => $sessionId
                 ]
             ];
 
@@ -101,38 +106,45 @@ class ChatService
         }
     }
 
-    private function obtenerNegocio(string $idNegocio): Negocio
+    private function construirDatosNegocios(): array
     {
-        $negocio = Negocio::with('productos')->find($idNegocio);
-
-        if (!$negocio) {
-            throw new NegocioNotFoundException("Negocio no encontrado: {$idNegocio}");
+        $negocios = Negocio::with('productos')->get();
+        
+        $storesData = [];
+        foreach ($negocios as $negocio) {
+            $productos = [];
+            foreach ($negocio->productos as $producto) {
+                $productos[$producto->id] = [
+                    'name' => $producto->nombre,
+                    'price' => (float) $producto->precio
+                ];
+            }
+            
+            $storesData[strtolower(str_replace(' ', '_', $negocio->nombre))] = [
+                'name' => $negocio->nombre,
+                'products' => $productos
+            ];
         }
-
-        return $negocio;
+        
+        return $storesData;
     }
 
-    private function obtenerHistorial(string $idNegocio, int $limite): \Illuminate\Database\Eloquent\Collection
-    {
-        return Chat::delNegocio($idNegocio)
-                   ->activos()
-                   ->orderBy('fecha_creacion', 'desc')
-                   ->limit($limite)
-                   ->get()
-                   ->reverse();
-    }
 
     private function guardarChat(
         string $idNegocio,
         string $mensajeUsuario,
-        string $respuestaBot
+        string $respuestaBot,
+        string $sessionId
     ): Chat {
         return Chat::create([
             'id_negocio' => $idNegocio,
             'mensaje_usuario' => $mensajeUsuario,
             'respuesta_bot' => $respuestaBot,
             'activo' => true,
-            'metadata' => ['modelo' => 'tinyllama']
+            'metadata' => [
+                'modelo' => 'virtual-assistant',
+                'session_id' => $sessionId
+            ]
         ]);
     }
 
