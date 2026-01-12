@@ -9,24 +9,26 @@ use App\Modules\MessagingOrders\Models\Chat;
 use App\Modules\MessagingOrders\Exceptions\AssistantConnectionException;
 use App\Modules\MessagingOrders\Exceptions\AssistantGenerationException;
 use App\Modules\MessagingOrders\Exceptions\NegocioNotFoundException;
+use Illuminate\Support\Str;
 
 /**
  * ChatService
  * 
- * Servicio orquestador que coordina todo el flujo del chat.
- * Conecta SpaceLLMService y PromptBuilder.
+ * Servicio orquestador del Asistente Virtual Conversacional.
+ * Coordina la comunicación con la API del Asistente Virtual (máquina de estados).
+ * Maneja:
+ * - Conversaciones entre cliente y asistente
+ * - Estado del carrito
+ * - Creación de órdenes finales
  */
 class ChatService
 {
-    private SpaceLLMService $spaceLLMService;
-    private PromptBuilder $promptBuilder;
+    private VirtualAssistantService $assistantService;
 
     public function __construct(
-        SpaceLLMService $spaceLLMService,
-        PromptBuilder $promptBuilder
+        VirtualAssistantService $assistantService
     ) {
-        $this->spaceLLMService = $spaceLLMService;
-        $this->promptBuilder = $promptBuilder;
+        $this->assistantService = $assistantService;
     }
 
     /**
@@ -77,17 +79,17 @@ class ChatService
                 'error' => $e->getMessage(),
                 'codigo' => 'NEGOCIO_NO_ENCONTRADO'
             ];
-        } catch (OllamaConnectionException $e) {
+        } catch (AssistantConnectionException $e) {
             return [
                 'exito' => false,
-                'error' => 'Servicio IA no disponible',
+                'error' => 'Servicio Asistente no disponible',
                 'codigo' => 'ASSISTANT_NO_DISPONIBLE'
             ];
-        } catch (OllamaGenerationException $e) {
+        } catch (AssistantGenerationException $e) {
             return [
                 'exito' => false,
-                'error' => 'Error generando respuesta',
-                'codigo' => 'ERROR_GENERACION'
+                'error' => 'Error procesando mensaje',
+                'codigo' => 'ERROR_PROCESAMIENTO'
             ];
         } catch (\Exception $e) {
             \Log::error('ChatService error', ['error' => $e->getMessage()]);
