@@ -10,10 +10,12 @@ Route::get('/ping', function () {
 });
 
 Route::prefix('v1')->group(function () {
-    Route::prefix('negocios/{negocioId}')->name('negocios.')->group(function () {
+    Route::prefix('negocios/{negocioId}')->name('negocios.')->group(function () { //id de negocio para productos y categorias, id sucursal para promociones
         // CRUD de negocios
-       /*  Route::get('/', 'App\Http\Controllers\NegocioController@index');
-        Route::get('/{negocioId}', 'App\Http\Controllers\NegocioController@show');
+        Route::get('/', function (Request $request, $negocioId) {
+            return response()->json(['message' => "Negocio ID: $negocioId"]);
+        });
+        /* Route::get('/{negocioId}', 'App\Http\Controllers\NegocioController@show');
         Route::post('/', 'App\Http\Controllers\NegocioController@store');
         Route::put('/{negocioId}', 'App\Http\Controllers\NegocioController@update');
         Route::delete('/{negocioId}', 'App\Http\Controllers\NegocioController@destroy'); */
@@ -24,6 +26,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/categoria', [productoController::class, 'showCategoria']);   // obtener productos por categoría, mediante query params
             Route::get('/{producto_id}', [productoController::class, 'show']);   // obtener un producto específico de un negocio
         
-        }); 
+        });
+        
+        Route::get('/promociones', [App\Http\Controllers\Api\promocionController::class, 'index']); // lista promociones
     });
 });
