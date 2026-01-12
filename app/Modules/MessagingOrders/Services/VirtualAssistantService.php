@@ -25,7 +25,7 @@ class VirtualAssistantService
     public function __construct()
     {
         $this->url = config('virtual-assistant.url') ?? 'https://huggingface.co/spaces/Saraqch10/Bizztalk/api/chat';
-        $this->timeout = config('virtual-assistant.timeout', 30);
+        $this->timeout = (int) (config('virtual-assistant.timeout') ?? 30);
 
         if (!$this->url) {
             throw new AssistantConnectionException('VIRTUAL_ASSISTANT_URL no configurada');
