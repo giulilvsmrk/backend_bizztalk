@@ -31,7 +31,7 @@ return new class extends Migration
             $table->text('correo')->nullable()->unique();
             $table->text('password_hash');
             $table->text('telefono')->nullable();
-            $table->boolean('activo')->default(false);
+            $table->boolean('activo')->default(true);
             $table->timestampTz('fecha_creacion')->default(DB::raw('now()'));
             $table->timestampTz('fecha_actualizacion')->default(DB::raw('now()'));
             $table->timestampTz('fecha_eliminacion')->nullable();
