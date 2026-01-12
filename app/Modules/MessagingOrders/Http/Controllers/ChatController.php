@@ -28,7 +28,7 @@ class ChatController extends Controller
      */
     public function send(SendChatMessageRequest $request): JsonResponse
     {
-        // Aumentar límite de ejecución para Ollama (puede tardar hasta 2 minutos)
+        // Aumentar límite de ejecución para Virtual Assistant
         set_time_limit(300);
 
         $datos = $request->validated();
@@ -36,7 +36,8 @@ class ChatController extends Controller
         $resultado = $this->chatService->procesarMensaje(
             idNegocio: $datos['business_id'],
             mensajeUsuario: $datos['message'],
-            limitHistorial: $datos['history_limit']
+            limitHistorial: $datos['history_limit'],
+            sessionId: $datos['session_id'] ?? null
         );
 
         if ($resultado['exito']) {
@@ -53,17 +54,4 @@ class ChatController extends Controller
         ], 400);
     }
 
-    /**
-     * GET /api/ai/chat/status
-     * Obtener estado de Ollama
-     */
-    public function status(): JsonResponse
-    {
-        $estado = $this->chatService->obtenerEstadoOllama();
-
-        return response()->json([
-            'success' => $estado['estado'] === 'conectado',
-            'data' => $estado
-        ]);
-    }
 }
