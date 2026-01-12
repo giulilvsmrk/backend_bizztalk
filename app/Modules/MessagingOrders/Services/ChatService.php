@@ -127,6 +127,9 @@ class ChatService
             ];
         }
         
+        // Debug log
+        \Log::info('construirDatosNegocios:', json_decode(json_encode($storesData), true));
+        
         return $storesData;
     }
 
