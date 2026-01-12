@@ -38,6 +38,11 @@ class SendChatMessageRequest extends FormRequest
                 'integer',
                 'min:0',
                 'max:20'
+            ],
+            'session_id' => [
+                'nullable',
+                'string',
+                'starts_with:session_'
             ]
         ];
     }
@@ -49,6 +54,7 @@ class SendChatMessageRequest extends FormRequest
             'business_id.exists' => 'El negocio no existe',
             'message.required' => 'El mensaje es requerido',
             'message.max' => 'El mensaje es muy largo',
+            'session_id.starts_with' => 'El session_id debe comenzar con "session_"'
         ];
     }
 
