@@ -148,18 +148,4 @@ class ChatService
         ]);
     }
 
-    public function obtenerEstadoSpaceLLM(): array
-    {
-        try {
-            return [
-                'conectado' => $this->spaceLLMService->verificarConexion(),
-                'info' => $this->spaceLLMService->getInfo(),
-            ];
-        } catch (\Exception $e) {
-            return [
-                'conectado' => false,
-                'error' => $e->getMessage(),
-            ];
-        }
-    }
 }
