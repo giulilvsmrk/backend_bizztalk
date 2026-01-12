@@ -152,4 +152,47 @@ class ChatService
         ]);
     }
 
+    public function confirmarPedido(
+        string $sessionId,
+        string $idNegocio,
+        array $carrito,
+        float $total
+    ): array {
+        try {
+            // Crear pedido
+            $pedido = \App\Models\Pedido::create([
+                'id_negocio' => $idNegocio,
+                'estado' => 'pendiente',
+                'total' => $total,
+                'metadata' => [
+                    'session_id' => $sessionId,
+                    'items_count' => count($carrito)
+                ]
+            ]);
+
+            // Agregar items al detalle del pedido
+            foreach ($carrito as $item) {
+                \App\Models\DetallePedido::create([
+                    'id_pedido' => $pedido->id,
+                    'nombre_producto' => $item['product'],
+                    'cantidad' => $item['quantity'],
+                    'precio_unitario' => $item['price'],
+                    'subtotal' => $item['subtotal']
+                ]);
+            }
+
+            return [
+                'exito' => true,
+                'pedido_id' => $pedido->id,
+                'total' => $total
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Error al confirmar pedido', ['error' => $e->getMessage()]);
+            return [
+                'exito' => false,
+                'error' => 'Error al procesar el pedido'
+            ];
+        }
+    }
+
 }
