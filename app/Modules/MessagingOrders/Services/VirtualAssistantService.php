@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\MessagingOrders\Services;
 
 use Illuminate\Support\Facades\Http;
-use App\Modules\MessagingOrders\Exceptions\OllamaConnectionException;
-use App\Modules\MessagingOrders\Exceptions\OllamaGenerationException;
+use App\Modules\MessagingOrders\Exceptions\AssistantConnectionException;
+use App\Modules\MessagingOrders\Exceptions\AssistantGenerationException;
 
 /**
  * VirtualAssistantService
@@ -28,7 +28,7 @@ class VirtualAssistantService
         $this->timeout = config('virtual-assistant.timeout', 30);
 
         if (!$this->url) {
-            throw new OllamaConnectionException('VIRTUAL_ASSISTANT_URL no configurada');
+            throw new AssistantConnectionException('VIRTUAL_ASSISTANT_URL no configurada');
         }
     }
 
@@ -77,7 +77,7 @@ class VirtualAssistantService
             ]);
 
             if (!$response->successful()) {
-                throw new OllamaConnectionException(
+                throw new AssistantConnectionException(
                     'Error en API del Asistente Virtual: ' . $response->status()
                 );
             }
@@ -85,7 +85,7 @@ class VirtualAssistantService
             $data = $response->json();
 
             if (!isset($data['success']) || !$data['success']) {
-                throw new OllamaGenerationException(
+                throw new AssistantGenerationException(
                     'Asistente retornó error: ' . ($data['error'] ?? 'Desconocido')
                 );
             }
@@ -93,14 +93,14 @@ class VirtualAssistantService
             return $data;
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            throw new OllamaConnectionException(
+            throw new AssistantConnectionException(
                 'No se puede conectar al Asistente Virtual: ' . $e->getMessage()
             );
         } catch (\Exception $e) {
-            if ($e instanceof OllamaGenerationException || $e instanceof OllamaConnectionException) {
+            if ($e instanceof AssistantGenerationException || $e instanceof AssistantConnectionException) {
                 throw $e;
             }
-            throw new OllamaGenerationException('Error en Asistente Virtual: ' . $e->getMessage());
+            throw new AssistantGenerationException('Error en Asistente Virtual: ' . $e->getMessage());
         }
     }
 

@@ -6,8 +6,8 @@ namespace App\Modules\MessagingOrders\Services;
 
 use App\Models\Negocio;
 use App\Modules\MessagingOrders\Models\Chat;
-use App\Modules\MessagingOrders\Exceptions\OllamaConnectionException;
-use App\Modules\MessagingOrders\Exceptions\OllamaGenerationException;
+use App\Modules\MessagingOrders\Exceptions\AssistantConnectionException;
+use App\Modules\MessagingOrders\Exceptions\AssistantGenerationException;
 use App\Modules\MessagingOrders\Exceptions\NegocioNotFoundException;
 
 /**
@@ -81,7 +81,7 @@ class ChatService
             return [
                 'exito' => false,
                 'error' => 'Servicio IA no disponible',
-                'codigo' => 'SPACELLM_NO_DISPONIBLE'
+                'codigo' => 'ASSISTANT_NO_DISPONIBLE'
             ];
         } catch (OllamaGenerationException $e) {
             return [
