@@ -1,0 +1,53 @@
+{
+    "negocio": {
+        "nombre": "Antigüedades La Paz",
+        "nit": "1234567012",
+        "logo_url": null,
+        "descripcion": "negocio de pura fe",
+        "telefono": "+59170000000",
+        "ubicacion": {
+            "point": { "lat": -16.5, "lng": -68.15 }
+        },
+        "direccion": "av heroinas entre av oquendo",
+        "imagen_portada": "url.imgaen.com"
+    },
+
+    "horarios": [
+        { "dia": "LUN", "abre": "09:00", "cierra": "19:00" },
+        { "dia": "MAR", "abre": "09:00", "cierra": "19:00" }
+    ],
+    "config_entrega": [
+        {
+            "tipo_servicio": "DELIVERY",
+            "vehiculo": "MOTO",
+            "alias": "Envío Moto",
+            "precio": 15,
+            "requiere_gps": true,
+            "activo": true
+        },
+        {
+            "tipo_servicio": "PICKUP",
+            "alias": "Recojo en tienda",
+            "precio": 0,
+            "requiere_gps": false,
+            "activo": true
+        }
+    ],
+    "zonas_cobertura": [
+        {
+            "nombre": "Anillo 1",
+            "costo_base": 10,
+            "area_geojson": {
+                "type": "POLYGON",
+                "coordinates": [[[ -68.16, -16.50 ], [ -68.14, -16.50 ], [ -68.14, -16.52 ], [ -68.16, -16.52 ], [ -68.16, -16.50 ]]]
+            }
+        }
+    ],
+    "colaboradores": [
+        { "email": "encargado@negocio.com", "rol": "ENCARGADO" }
+    ],
+    "contactos": [
+        { "numero": "+59170000000", "tipo": "fijo", "etiqueta": "Casa", "es_principal": true },
+        { "numero": "+59170000002", "tipo": "fijo", "etiqueta": "Tia", "es_principal": false }
+    ]
+}
