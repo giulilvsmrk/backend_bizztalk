@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Models\Usuario;
 
-class UserFactory extends Factory
+class UsuarioFactory extends Factory
 {
     protected $model = Usuario::class;
 
