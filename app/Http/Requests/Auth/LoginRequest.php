@@ -16,8 +16,9 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'identificador' => ['required', 'string'],
+            'correo' => ['required', 'email'],
             'password' => ['required', 'string'],
+            'device_name' => ['nullable', 'string'],
         ];
     }
 }
