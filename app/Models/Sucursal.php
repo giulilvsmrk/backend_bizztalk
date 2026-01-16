@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
-use MatanYadaev\EloquentSpatial\Objects\Point;
+use App\Values\PostgresPoint;
 
 class Sucursal extends Model
 {
@@ -38,7 +38,7 @@ class Sucursal extends Model
     ];
 
     protected $casts = [
-        'ubicacion_gps' => Point::class,
+        'ubicacion_gps' => PostgresPoint::class,
         'activo' => 'boolean',
         'fecha_creacion' => 'datetime',
         'fecha_eliminacion' => 'datetime',
