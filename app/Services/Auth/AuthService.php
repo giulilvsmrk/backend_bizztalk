@@ -31,7 +31,7 @@ class AuthService
         $token = $usuario->createToken(
             $dto->deviceName ?? 'api-token'
         )->plainTextToken;
-
+        $roles = $usuario->roles()->pluck('nombre');
         return [
             'token' => $token,
             'token_type' => 'Bearer',
@@ -40,6 +40,7 @@ class AuthService
                 'nombres' => $usuario->nombres,
                 'apellidos' => $usuario->apellidos,
                 'correo' => $usuario->correo,
+                'roles' => $roles,
             ],
         ];
     }
