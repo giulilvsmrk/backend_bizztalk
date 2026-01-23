@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\Usuario;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
         $idRolAdmin   = DB::table('rol')->where('nombre', 'admin_plataforma')->value('id');
         $idRolCliente = DB::table('rol')->where('nombre', 'cliente')->value('id');
         $idRolDueno   = DB::table('rol')->where('nombre', 'dueno')->value('id');
-        $admin = User::factory()->create([
+        $admin = Usuario::factory()->create([
             'nombres' => 'Super',
             'apellidos' => 'Administrador',
             'correo' => 'admin@biztalk.com',
@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
             'fecha_asignacion' => now(),
         ]);
 
-        User::factory(10)->create()->each(function ($usuario) use ($idRolCliente) {
+        Usuario::factory(10)->create()->each(function ($usuario) use ($idRolCliente) {
             DB::table('usuario_rol')->insert([
                 'id_usuario' => $usuario->id,
                 'id_rol' => $idRolCliente,
@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
             ]);
         });
 
-        User::factory(2)->create()->each(function ($usuario) use ($idRolDueno) {
+        Usuario::factory(2)->create()->each(function ($usuario) use ($idRolDueno) {
             DB::table('usuario_rol')->insert([
                 'id_usuario' => $usuario->id,
                 'id_rol' => $idRolDueno,

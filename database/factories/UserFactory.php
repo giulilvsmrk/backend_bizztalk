@@ -5,11 +5,11 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
-use App\Models\User;
+use App\Models\Usuario;
 
 class UserFactory extends Factory
 {
-    protected $model = User::class;
+    protected $model = Usuario::class;
 
     /**
      * Define el estado por defecto del modelo.
