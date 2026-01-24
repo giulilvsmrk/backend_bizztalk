@@ -21,6 +21,7 @@ class UpdateUsuarioRequest extends FormRequest
             'telefono' => "sometimes|nullable|string|unique:usuario,telefono,{$usuarioId},id",
             'ubicacion_actual' => 'nullable|array',
             'activo' => 'boolean',
+            'rol' => 'required|exists:rol,nombre',
         ];
     }
 }
