@@ -9,6 +9,7 @@ use App\Models\Producto;
 use App\Models\Inventario;
 use App\Models\Sucursal;
 use App\Models\Negocio;
+use Illuminate\Support\Facades\Validator;
 
 class productoController extends Controller
 {
@@ -104,5 +105,48 @@ class productoController extends Controller
             'stock' => $stock,
             'count' => $productos->count(),
         ], 200);
+    }
+
+    public function store(Request $request, $negocioId)
+    {
+        $validator = Validator::make($request->all(), [
+            'nombre' => 'required',
+            'descripcion' => 'required',
+            'precio_base' => 'required|numeric',
+            'id_categoria' => 'required|exists:categoria,id',
+            'imagen_url' => 'nullable|url',
+        ]);
+
+        if ($validator->fails()) {
+            $data = [
+                'message' => 'error en la validacion de datos',
+                'error' => $validator->errors(),
+                'status' => 400
+            ];
+            return response()->json($data, 400);
+        }
+
+        $producto = Producto::create([
+            'id_negocio' => $negocioId,
+            'id_categoria' => $request->input('id_categoria'),
+            'nombre' => $request->input('nombre'),
+            'descripcion' => $request->input('descripcion'),
+            'precio_base' => $request->input('precio_base'),
+            'imagen_url' => $request->input('imagen_url'),
+        ]);
+
+        if (!$producto) {
+            $data = [
+                'message' => 'error al crear producto',
+                'status' => 500
+            ];
+            return response()->json($data, 500);
+        } else {
+            $data = [
+                'producto' => $producto,
+                'status' => 201
+            ];
+            return response()->json($data, 201);
+        }
     }
 }

@@ -57,6 +57,10 @@ Route::prefix('v1')->group(function () {
             Route::get('/', [productoController::class, 'index']);
             Route::get('/categoria', [productoController::class, 'showCategoria']);
             Route::get('/{producto_id}', [productoController::class, 'show']);
+
+            Route::post('/', [productoController::class, 'store']);
+            Route::put('/{producto_id}', [productoController::class, 'update']);
+            Route::delete('/{producto_id}', [productoController::class, 'destroy']);
         });
 
         Route::get('/promociones', [promocionController::class, 'index']);
