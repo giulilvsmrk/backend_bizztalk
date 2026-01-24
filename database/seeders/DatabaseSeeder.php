@@ -63,7 +63,7 @@ class DatabaseSeeder extends Seeder
             ['nombre' => 'Frutas y Verduras', 'id_negocio' => $market->id],
             ['nombre' => 'Lácteos', 'id_negocio' => $market->id],
             ['nombre' => 'Carnes', 'id_negocio' => $market->id],
-            ['nombre' => 'Bebidas', 'id_negocio' => $market->id],
+            ['nombre' => 'Bebidass', 'id_negocio' => $market->id],
             ['nombre' => 'Abarrotes', 'id_negocio' => $market->id],
         ];
         
