@@ -122,10 +122,10 @@ class DatabaseSeeder extends Seeder
             'fecha_inicio' => now(),
             'fecha_fin' => now()->addDays(30),
             'monto_minimo_compra' => 10,
-            'activo' => true,
+            'activo' =>true,
             'reglas_extra' => '{}',
             'fecha_creacion' => now(),
-            
+
         ]);
 
         DB::table('promocion')->insert([
