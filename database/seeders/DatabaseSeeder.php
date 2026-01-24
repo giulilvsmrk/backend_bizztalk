@@ -125,6 +125,7 @@ class DatabaseSeeder extends Seeder
             'activo' => true,
             'reglas_extra' => '{}',
             'fecha_creacion' => now(),
+            
         ]);
 
         DB::table('promocion')->insert([
