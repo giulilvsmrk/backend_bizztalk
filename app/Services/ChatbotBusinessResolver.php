@@ -125,12 +125,35 @@ class ChatbotBusinessResolver
             ->limit(50)
             ->get();
 
-        return $productos->map(fn($p) => [
+        $productosArray = $productos->map(fn($p) => [
             'id' => $p->id,
             'nombre' => $p->nombre,
             'descripcion' => $p->descripcion,
             'precio' => (float)$p->precio_base
         ])->values()->all();
+
+        // Generar texto formateado
+        $texto = $this->formatearProductos($productosArray);
+
+        return [
+            'success' => true,
+            'productos' => $productosArray,
+            'texto' => $texto
+        ];
+    }
+
+    /**
+     * Formatear productos en texto legible
+     */
+    private function formatearProductos(array $productos): string
+    {
+        $lineas = [];
+        
+        foreach ($productos as $producto) {
+            $lineas[] = "• {$producto['nombre']} - \${$producto['precio']}\n  {$producto['descripcion']}";
+        }
+
+        return implode("\n\n", $lineas);
     }
 
     /**
