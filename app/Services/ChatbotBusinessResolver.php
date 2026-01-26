@@ -125,18 +125,12 @@ class ChatbotBusinessResolver
             ->limit(50)
             ->get();
 
-        return [
-            'status' => 'success',
-            'business_id' => $negocio->id,
-            'business_name' => $negocio->nombre,
-            'description' => $negocio->descripcion,
-            'products' => $productos->map(fn($p) => [
-                'id' => $p->id,
-                'nombre' => $p->nombre,
-                'descripcion' => $p->descripcion,
-                'precio' => $p->precio_base
-            ])->values()->all()
-        ];
+        return $productos->map(fn($p) => [
+            'id' => $p->id,
+            'nombre' => $p->nombre,
+            'descripcion' => $p->descripcion,
+            'precio' => (float)$p->precio_base
+        ])->values()->all();
     }
 
     /**
