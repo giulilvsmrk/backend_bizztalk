@@ -26,6 +26,11 @@ class ChatbotResolverController extends Controller
 
         $result = $resolver->resolve($validated['texto']);
 
-        return response()->json($result, 200);
+        return response()
+            ->json($result, 200)
+            ->header('Content-Type', 'application/json; charset=utf-8')
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 }
