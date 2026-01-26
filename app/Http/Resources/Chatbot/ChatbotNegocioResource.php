@@ -9,10 +9,12 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ChatbotNegocioResource extends JsonResource
 {
-     
-    @param Request $request
-    @return array<string, mixed>
-   
+    /**
+     * Transformar el recurso en un array.
+     *
+     * @param Request $request
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
