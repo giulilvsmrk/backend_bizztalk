@@ -11,9 +11,14 @@ use Illuminate\Http\JsonResponse;
  
 class ChatbotNegocioController extends Controller
 {
-     
-    @return JsonResponse
-     
+    /**
+     * Listar TODOS los negocios de la plataforma (v1).
+     * 
+     * Endpoint público para Chatbot. Retorna todos los negocios activos
+     * con solo los campos necesarios: id, nombre, descripcion
+     *
+     * @return JsonResponse
+     */
     public function listarTodos(): JsonResponse
     {
         // 1. Obtener TODOS los negocios activos de la BD
