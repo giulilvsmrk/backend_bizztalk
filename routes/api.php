@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\UsuarioController;
 use App\Http\Controllers\Api\AuthController as ApiAuthController;
 use App\Http\Controllers\Api\productoController;
 use App\Http\Controllers\Api\promocionController;
+use App\Http\Controllers\Api\ChatbotNegocioController;
 
 Route::prefix('v1')->group(function () {
 
@@ -17,6 +18,13 @@ Route::prefix('v1')->group(function () {
         'environment' => app()->environment(),
         'timestamp' => now()->toIso8601String()
     ]));
+
+    // chatbot - Listar todos los negocios para el chatsito
+    Route::prefix('chatbot')->name('chatbot.')->group(function () {
+        Route::get('/negocios', [ChatbotNegocioController::class, 'listarTodos'])
+            ->middleware('throttle:60,1')
+            ->name('negocios.listado');
+    });
 
     Route::controller(AuthController::class)->prefix('auth')->group(function () {
         Route::post('/registro', 'registro');
