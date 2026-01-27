@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Negocio\NegocioController;
+use App\Http\Controllers\Api\NegocioController;
 use App\Http\Controllers\Api\UsuarioController;
 use App\Http\Controllers\Api\AuthController as ApiAuthController;
 use App\Http\Controllers\Api\productoController;
@@ -48,11 +48,11 @@ Route::prefix('v2')->group(function () {
 
 Route::prefix('v1')->group(function () {
     Route::apiResource('usuarios', UsuarioController::class);
+    Route::get('/negocios', [NegocioController::class, 'index']);
     Route::prefix('negocios/{negocioId}')->name('negocios.')->group(function () {
 
-        Route::get('/', function (Request $request, $negocioId) {
-            return response()->json(['message' => "Negocio ID: $negocioId"]);
-        });
+        Route::get('/', [NegocioController::class, 'show']);
+        
         Route::prefix('/products')->group(function () {
             Route::get('/', [productoController::class, 'index']);
             Route::get('/categoria', [productoController::class, 'showCategoria']);
