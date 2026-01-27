@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
 use MatanYadaev\EloquentSpatial\Objects\Point;
+use Database\Factories\UserFactory;
 
 class Usuario extends Authenticatable implements MustVerifyEmail
 {
@@ -136,5 +137,10 @@ class Usuario extends Authenticatable implements MustVerifyEmail
     public function historialVistas(): HasMany
     {
         return $this->hasMany(HistorialVista::class, 'id_usuario');
+    }
+
+    protected static function newFactory(): UserFactory
+    {
+        return UserFactory::new();
     }
 }
