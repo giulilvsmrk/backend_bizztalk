@@ -52,8 +52,8 @@ Route::prefix('v1')->group(function () {
     Route::prefix('negocios/{negocioId}')->name('negocios.')->group(function () {
 
         Route::get('/', [negocioController::class, 'show']); // detalle de un negocio
-        
-        
+        Route::get('/categorias', [negocioController::class, 'showCategorias']); // obtener categorías de un negocio
+
         Route::prefix('/products')->group(function () { // productos de un negocio
             Route::get('/', [productoController::class, 'index']); // listar todos los productos de un negocio
             Route::get('/categoria', [productoController::class, 'showCategoria']); // obtener productos por categoría
