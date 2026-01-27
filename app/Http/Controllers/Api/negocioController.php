@@ -31,6 +31,20 @@ class negocioController extends Controller
 
     public function show($negocioId)
     {
-        return response()->json(['message' => "Detalles del negocio ID: $negocioId"]);
+        $negocio = Negocio::find($negocioId);
+        if (is_null($negocio)) {
+            $data = [
+                'message' => 'Negocio no encontrado',
+                'status' => 404,
+            ];
+            return response()->json($data, 404);
+        } else {
+            $data = [
+                'message' => 'Detalle del negocio',
+                'status' => 200,
+                'negocio' => $negocio,
+            ];
+            return response()->json($data, 200);
+        }
     }
 }
