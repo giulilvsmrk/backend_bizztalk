@@ -80,6 +80,17 @@ Route::prefix('v1')->group(function () {
             Route::get('/', [productoController::class, 'index']); // listar todos los productos de un negocio
             Route::get('/categoria', [productoController::class, 'showCategoria']); // obtener productos por categoría
             Route::get('/{producto_id}', [productoController::class, 'show']); // obtener un producto específico
+        Route::get('/', function (Request $request, $negocioId) {
+            return response()->json(['message' => "Negocio ID: $negocioId"]);
+        });
+        Route::prefix('/products')->group(function () {
+            Route::get('/', [productoController::class, 'index']);
+            Route::get('/categoria', [productoController::class, 'showCategoria']);
+            Route::get('/{producto_id}', [productoController::class, 'show']);
+
+            Route::post('/', [productoController::class, 'store']);
+            Route::put('/{producto_id}', [productoController::class, 'update']);
+            Route::delete('/{producto_id}', [productoController::class, 'destroy']);
         });
 
         Route::get('/promociones', [promocionController::class, 'index']);
