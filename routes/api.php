@@ -9,6 +9,16 @@ use App\Http\Controllers\Api\AuthController as ApiAuthController;
 use App\Http\Controllers\Api\productoController;
 use App\Http\Controllers\Api\promocionController;
 
+use App\Http\Controllers\CarritoController;
+
+Route::prefix('carrito')->group(function () {
+    Route::get('/', [CarritoController::class, 'obtener']); // ?id_usuario=...
+    Route::post('/', [CarritoController::class, 'agregar']); // body incluye id_usuario
+    Route::put('/{idItem}', [CarritoController::class, 'actualizar']); // body cantidad y observacion
+    Route::delete('/{idItem}', [CarritoController::class, 'eliminar']);
+    Route::delete('/', [CarritoController::class, 'vaciar']); // ?id_usuario=...
+});
+
 Route::prefix('v1')->group(function () {
 
     Route::get('/ping', fn () => response()->json([
