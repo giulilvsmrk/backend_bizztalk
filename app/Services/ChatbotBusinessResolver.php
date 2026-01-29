@@ -19,6 +19,11 @@ class ChatbotBusinessResolver
      */
     public function resolve(string $userText): array
     {
+        // Validar que el texto no sea null, vacío o "null"
+        if (empty($userText) || $userText === 'null' || trim($userText) === '') {
+            return $this->notFound();
+        }
+
         $userText = $this->normalize($userText);
         $negocios = Negocio::where('activo', true)->get();
 
@@ -179,8 +184,9 @@ class ChatbotBusinessResolver
     private function notFound(): array
     {
         return [
-            'status' => 'not_found',
-            'message' => 'No se encontró ningún negocio similar a lo que escribiste.'
+            'success' => false,
+            'productos' => [],
+            'texto' => 'No se ha encontrado el negocio que buscas. Por favor, escribe nuevamente el nombre del negocio.'
         ];
     }
 }
