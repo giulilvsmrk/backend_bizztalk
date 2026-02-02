@@ -150,7 +150,7 @@ class ChatbotBusinessResolver
         
         foreach ($productos as $producto) {
             $stock = $producto['stock']['agotado'] ? '(Agotado)' : "Stock: {$producto['stock']['cantidad']}";
-            $lineas[] = "• {$producto['nombre']} - \${$producto['precio']} {$stock}\n  {$producto['descripcion']}";
+            $lineas[] = "• {$producto['nombre']} - {$producto['precio']} {$stock}\n  {$producto['descripcion']}";
         }
 
         return implode("\n\n", $lineas);
