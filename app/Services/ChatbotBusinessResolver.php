@@ -129,14 +129,16 @@ class ChatbotBusinessResolver
      */
     private function success(Negocio $negocio): array
     {
-        $productosArray = $this->productService->obtenerProductosConStock($negocio);
+        $resultado = $this->productService->obtenerProductosConStock($negocio);
+        $productosDisponibles = $resultado['productosDisponibles'];
 
-        // Generar texto formateado
-        $texto = $this->formatearProductos($productosArray);
+        // Generar texto formateado con disponibles
+        $texto = $this->formatearProductos($productosDisponibles);
 
         return [
             'success' => true,
-            'productos' => $productosArray,
+            'productosDisponibles' => $productosDisponibles,
+            'productosTotales' => $resultado['productosTotales'],
             'texto' => $texto
         ];
     }
