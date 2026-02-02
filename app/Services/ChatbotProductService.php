@@ -46,7 +46,7 @@ class ChatbotProductService
                 'id' => $producto->id,
                 'nombre' => $producto->nombre,
                 'descripcion' => $producto->descripcion,
-                'precio' => (float)$producto->precio_base,
+                'precio' => "Bs. " . number_format((float)$producto->precio_base, 2, '.', ','),
                 'stock' => [
                     'cantidad' => $inventario->cantidad ?? 0,
                     'agotado' => ($inventario->cantidad ?? 0) === 0
