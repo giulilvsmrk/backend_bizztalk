@@ -138,7 +138,7 @@ class ChatbotBusinessResolver
         return [
             'success' => true,
             'productosDisponibles' => $productosDisponibles,
-            'productosTotales' => $resultado['productosTotales'],
+            'productosAgotados' => $resultado['productosAgotados'],
             'texto' => $texto
         ];
     }
