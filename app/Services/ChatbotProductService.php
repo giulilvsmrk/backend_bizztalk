@@ -11,7 +11,7 @@ use App\Models\Sucursal;
 class ChatbotProductService
 {
     /**
-     * Obtener productos disponibles y totales del negocio con stock
+     * Obtener productos disponibles y agotados del negocio con stock
      * 
      * @param Negocio $negocio
      * @return array
@@ -28,7 +28,7 @@ class ChatbotProductService
         if ($productos->isEmpty()) {
             return [
                 'productosDisponibles' => [],
-                'productosTotales' => []
+                'productosAgotados' => []
             ];
         }
 
@@ -57,15 +57,20 @@ class ChatbotProductService
             ];
         })->values()->all();
 
-        // Separar disponibles de totales
+        // Separar disponibles de agotados
         $productosDisponibles = array_filter(
             $productosConStock,
             fn($p) => $p['stock']['cantidad'] > 0
         );
 
+        $productosAgotados = array_filter(
+            $productosConStock,
+            fn($p) => $p['stock']['cantidad'] === 0
+        );
+
         return [
             'productosDisponibles' => array_values($productosDisponibles),
-            'productosTotales' => $productosConStock
+            'productosAgotados' => array_values($productosAgotados)
         ];
     }
 }
