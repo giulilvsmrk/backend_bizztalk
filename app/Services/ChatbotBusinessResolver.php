@@ -9,7 +9,17 @@ use Illuminate\Support\Collection;
 
 class ChatbotBusinessResolver
 {
+    private ChatbotProductService $productService;
+
+class ChatbotBusinessResolver
+{
+    private ChatbotProductService $productService;
     private const SIMILARITY_THRESHOLD = 80;
+
+    public function __construct(ChatbotProductService $productService)
+    {
+        $this->productService = $productService;
+    }
 
     /**
      * Resolver negocio por texto del usuario usando fuzzy matching
@@ -123,19 +133,7 @@ class ChatbotBusinessResolver
      */
     private function success(Negocio $negocio): array
     {
-        // Obtener productos activos del negocio
-        $productos = $negocio->productos()
-            ->where('activo', true)
-            ->select(['id', 'nombre', 'descripcion', 'precio_base'])
-            ->limit(50)
-            ->get();
-
-        $productosArray = $productos->map(fn($p) => [
-            'id' => $p->id,
-            'nombre' => $p->nombre,
-            'descripcion' => $p->descripcion,
-            'precio' => (float)$p->precio_base
-        ])->values()->all();
+        $productosArray = $this->productService->obtenerProductosConStock($negocio);
 
         // Generar texto formateado
         $texto = $this->formatearProductos($productosArray);
@@ -155,7 +153,8 @@ class ChatbotBusinessResolver
         $lineas = [];
         
         foreach ($productos as $producto) {
-            $lineas[] = "• {$producto['nombre']} - \${$producto['precio']}\n  {$producto['descripcion']}";
+            $stock = $producto['stock']['agotado'] ? '(Agotado)' : "Stock: {$producto['stock']['cantidad']}";
+            $lineas[] = "• {$producto['nombre']} - \${$producto['precio']} {$stock}\n  {$producto['descripcion']}";
         }
 
         return implode("\n\n", $lineas);
