@@ -10,10 +10,6 @@ use Illuminate\Support\Collection;
 class ChatbotBusinessResolver
 {
     private ChatbotProductService $productService;
-
-class ChatbotBusinessResolver
-{
-    private ChatbotProductService $productService;
     private const SIMILARITY_THRESHOLD = 80;
 
     public function __construct(ChatbotProductService $productService)
