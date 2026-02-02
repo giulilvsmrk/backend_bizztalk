@@ -153,7 +153,7 @@ class ChatbotBusinessResolver
         foreach ($productos as $producto) {
             $stockInfo = '';
             if ($producto['stock']['cantidad'] < 10) {
-                $stockInfo = " ⚠️ Solo {$producto['stock']['cantidad']} disponibles";
+                $stockInfo = "Solo {$producto['stock']['cantidad']} disponibles";
             }
             $lineas[] = "• {$producto['nombre']} - {$producto['precio']}{$stockInfo}\n  {$producto['descripcion']}";
         }
