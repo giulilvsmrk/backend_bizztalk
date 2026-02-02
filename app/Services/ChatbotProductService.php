@@ -11,7 +11,7 @@ use App\Models\Sucursal;
 class ChatbotProductService
 {
     /**
-     * Obtener productos de un negocio con su stock
+     * Obtener productos disponibles y totales del negocio con stock
      * 
      * @param Negocio $negocio
      * @return array
@@ -26,15 +26,18 @@ class ChatbotProductService
             ->get();
 
         if ($productos->isEmpty()) {
-            return [];
+            return [
+                'productosDisponibles' => [],
+                'productosTotales' => []
+            ];
         }
 
-        // Aquí obtenemos cada sucursal del negocio para consultar stock.
+        // Obtener sucursal del negocio para consultar stock
         $sucursal = Sucursal::where('id_negocio', $negocio->id)->first();
         $idSucursal = $sucursal?->id;
 
         // Mapear productos con su stock
-        return $productos->map(function($producto) use ($idSucursal) {
+        $productosConStock = $productos->map(function($producto) use ($idSucursal) {
             $inventario = null;
             if ($idSucursal) {
                 $inventario = Inventario::where('id_sucursal', $idSucursal)
@@ -53,5 +56,16 @@ class ChatbotProductService
                 ]
             ];
         })->values()->all();
+
+        // Separar disponibles de totales
+        $productosDisponibles = array_filter(
+            $productosConStock,
+            fn($p) => $p['stock']['cantidad'] > 0
+        );
+
+        return [
+            'productosDisponibles' => array_values($productosDisponibles),
+            'productosTotales' => $productosConStock
+        ];
     }
 }
