@@ -10,9 +10,25 @@ use App\Http\Controllers\Api\productoController;
 use App\Http\Controllers\Api\promocionController;
 use App\Http\Controllers\Api\ChatbotNegocioController;
 use App\Http\Controllers\Api\ChatbotResolverController;
-
+use App\Http\Controllers\Api\ProductosController;
 use App\Http\Controllers\CarritoController;
+use App\Http\Controllers\Api\CategoriasController;
 
+Route::prefix('categorias')->group(function () {
+    Route::get('/', [CategoriasController::class, 'index']);          // Listar todas
+    Route::get('{id}', [CategoriasController::class, 'show']);       // Ver una
+    Route::post('/', [CategoriasController::class, 'store']);        // Crear
+    Route::put('{id}', [CategoriasController::class, 'update']);     // Actualizar
+    Route::delete('{id}', [CategoriasController::class, 'destroy']); // Eliminar
+});
+Route::prefix('productos')->group(function () {
+    Route::post('/', [ProductosController::class, 'store']);  // Crear producto
+    Route::get('/', [ProductosController::class, 'index']);   // Listar todos los productos
+    Route::get('/{id}', [ProductosController::class, 'show']);  // Mostrar un producto específico
+    Route::put('/{id}', [ProductosController::class, 'update']);     // Actualizar producto
+    Route::delete('/{id}', [ProductosController::class, 'destroy']);     // Eliminar producto
+
+});
 Route::prefix('carrito')->group(function () {
     Route::get('/', [CarritoController::class, 'obtener']); // ?id_usuario=...
     Route::post('/', [CarritoController::class, 'agregar']); // body incluye id_usuario

@@ -50,9 +50,8 @@ class Carrito extends Model
 
     public function calcularSubtotal(): float
     {
-        $this->load(['items.producto.sucursales' => function ($q) {
-            $q->where('sucursal.id', $this->id_sucursal_activa);
-        }]);
+        // Solo cargamos items y producto, eliminamos la relación 'sucursales'
+        $this->load(['items.producto']);
 
         $total = 0.0;
 

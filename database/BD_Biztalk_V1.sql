@@ -174,14 +174,12 @@ CREATE TABLE galeria_producto (
 
 CREATE TABLE inventario (
     id                  UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    id_sucursal         UUID NOT NULL REFERENCES sucursal(id) ON DELETE CASCADE,
     id_producto         UUID NOT NULL REFERENCES producto(id) ON DELETE CASCADE,
     cantidad            INT NOT NULL DEFAULT 0 CHECK (cantidad >= 0),
     precio_local        NUMERIC(12, 2) CHECK (precio_local >= 0),
     activo              BOOLEAN DEFAULT true,
     ultima_actualizacion TIMESTAMPTZ DEFAULT now(),
-
-    UNIQUE (id_sucursal, id_producto)
+    UNIQUE (id_producto)
 );
 
 CREATE TABLE promocion (
@@ -403,7 +401,6 @@ CREATE INDEX idx_billetera_usuario ON billetera_usuario(id_usuario) WHERE activo
 CREATE INDEX idx_pedido_numero_publico ON pedido(numero_orden_publico);
 CREATE INDEX idx_pedido_sucursal_estado ON pedido (id_sucursal, fecha_creacion) WHERE estado = 'pendiente';
 CREATE INDEX idx_transaccion_pedido ON transaccion_pago(id_pedido);
-CREATE INDEX idx_inventario_sucursal ON inventario(id_sucursal);
 CREATE INDEX idx_horario_sucursal ON horario(id_sucursal);
 CREATE INDEX idx_config_entrega_sucursal ON config_entrega(id_sucursal) WHERE activo = true;
 CREATE INDEX idx_zona_cobertura_sucursal ON zona_cobertura(id_sucursal);

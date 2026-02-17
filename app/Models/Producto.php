@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder;
 
 class Producto extends Model
@@ -57,13 +56,7 @@ class Producto extends Model
         return $this->belongsTo(Categoria::class, 'id_categoria');
     }
 
-    public function sucursales(): BelongsToMany
-    {
-        return $this->belongsToMany(Sucursal::class, 'inventario', 'id_producto', 'id_sucursal')
-                    ->withPivot(['cantidad', 'precio_local', 'activo', 'ultima_actualizacion'])
-                    ->using(Inventario::class);
-    }
-
+    // Ahora el inventario es directo por producto
     public function registrosInventario(): HasMany
     {
         return $this->hasMany(Inventario::class, 'id_producto');
@@ -71,7 +64,8 @@ class Producto extends Model
 
     public function galeria(): HasMany
     {
-        return $this->hasMany(GaleriaProducto::class, 'id_producto')->orderBy('orden_visual');
+        return $this->hasMany(GaleriaProducto::class, 'id_producto')
+                    ->orderBy('orden_visual');
     }
 
     public function promociones(): HasMany
@@ -96,8 +90,13 @@ class Producto extends Model
 
     public function scopeSearch(Builder $query, string $term): void
     {
-        $query->whereRaw("vector_busqueda @@ websearch_to_tsquery('spanish', ?)", [$term])
-                ->orderByRaw("ts_rank(vector_busqueda, websearch_to_tsquery('spanish', ?)) DESC", [$term]);
+        $query->whereRaw(
+            "vector_busqueda @@ websearch_to_tsquery('spanish', ?)",
+            [$term]
+        )->orderByRaw(
+            "ts_rank(vector_busqueda, websearch_to_tsquery('spanish', ?)) DESC",
+            [$term]
+        );
     }
 
     public function scopeActivos(Builder $query): void

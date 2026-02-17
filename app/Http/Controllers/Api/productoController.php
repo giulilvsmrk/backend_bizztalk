@@ -56,10 +56,10 @@ class productoController extends Controller
         }
     }
 
-    // Obtener productos por categoría de un negocio
+   
     public function showCategoria($negocioId, Request $request)
     {
-        // Validar parámetros: se acepta 'name' (nombre) o 'category_id'
+       
         $request->validate([
             'name' => 'sometimes|string',
             'category_id' => 'sometimes|integer',
@@ -86,15 +86,8 @@ class productoController extends Controller
         // Obtener productos mediante la relación Eloquent
         $productos = $categoria->productos()->get();
 
-        // Obtener stock en la sucursal asociada al negocio (si existe)
-        $idSucursal = Sucursal::where('id_negocio', $negocioId)->value('id');
-        if ($idSucursal && $productos->isNotEmpty()) {
-            $stock = Inventario::where('id_sucursal', $idSucursal)
-                        ->whereIn('id_producto', $productos->pluck('id'))
-                        ->get();
-        } else {
-            $stock = collect();
-        }
+        // Como ya no hay id_sucursal, devolvemos stock vacío
+        $stock = collect();
 
         return response()->json([
             'category' => [

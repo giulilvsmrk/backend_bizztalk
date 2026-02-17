@@ -24,7 +24,6 @@ class Inventario extends Pivot
     const UPDATED_AT = 'ultima_actualizacion';
 
     protected $fillable = [
-        'id_sucursal',
         'id_producto',
         'cantidad',
         'precio_local',
@@ -38,11 +37,6 @@ class Inventario extends Pivot
         'activo' => 'boolean',
         'ultima_actualizacion' => 'datetime',
     ];
-
-    public function sucursal(): BelongsTo
-    {
-        return $this->belongsTo(Sucursal::class, 'id_sucursal');
-    }
 
     public function producto(): BelongsTo
     {

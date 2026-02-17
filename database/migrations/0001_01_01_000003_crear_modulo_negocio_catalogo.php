@@ -136,13 +136,13 @@ return new class extends Migration
 
         Schema::create('inventario', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
-            $table->foreignUuid('id_sucursal')->constrained('sucursal', 'id')->cascadeOnDelete();
+           
             $table->foreignUuid('id_producto')->constrained('producto', 'id')->cascadeOnDelete();
             $table->integer('cantidad')->default(0);
             $table->decimal('precio_local', 12, 2)->nullable();
             $table->boolean('activo')->default(true);
             $table->timestampTz('ultima_actualizacion')->default(DB::raw('now()'));
-            $table->unique(['id_sucursal', 'id_producto']);
+            $table->unique(['id_producto']);
         });
         DB::statement("ALTER TABLE inventario ADD CONSTRAINT chk_cantidad CHECK (cantidad >= 0)");
         DB::statement("ALTER TABLE inventario ADD CONSTRAINT chk_precio_local CHECK (precio_local >= 0)");
@@ -164,7 +164,6 @@ return new class extends Migration
             $table->timestampTz('fecha_subida')->default(DB::raw('now()'));
         });
         DB::statement("CREATE INDEX idx_colaborador_usuario ON colaborador(id_usuario)");
-        DB::statement("CREATE INDEX idx_inventario_sucursal ON inventario(id_sucursal)");
         DB::statement("CREATE INDEX idx_horario_sucursal ON horario(id_sucursal)");
         DB::statement("CREATE INDEX idx_config_entrega_sucursal ON config_entrega(id_sucursal) WHERE activo = true");
         DB::statement("CREATE INDEX idx_zona_cobertura_sucursal ON zona_cobertura(id_sucursal)");
