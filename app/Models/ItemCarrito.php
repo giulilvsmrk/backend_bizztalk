@@ -38,11 +38,10 @@ class ItemCarrito extends Model
         return $this->belongsTo(Carrito::class, 'id_carrito');
     }
 
-    public function producto(): BelongsTo
-    {
-        return $this->belongsTo(Producto::class, 'id_producto');
-    }
-
+  public function producto(): BelongsTo
+ {
+    return $this->belongsTo(Producto::class, 'id_producto')->withTrashed();
+ }
     public function getPrecioUnitarioEstimadoAttribute(): float
     {
         $idSucursal = $this->carrito->id_sucursal_activa ?? null;
