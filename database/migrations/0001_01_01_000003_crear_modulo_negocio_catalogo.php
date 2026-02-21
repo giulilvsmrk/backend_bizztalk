@@ -19,25 +19,25 @@ return new class extends Migration
             $table->boolean('activo')->default(true);
             $table->timestampTz('fecha_creacion')->default(DB::raw('now()'));
             $table->timestampTz('fecha_eliminacion')->nullable();
+            $table->text('direccion_texto')->nullable();
         });
+       DB::statement('ALTER TABLE negocio ADD COLUMN ubicacion_gps point NOT NULL');
+       DB::statement('CREATE INDEX idx_negocio_geo ON negocio USING GIST (ubicacion_gps)');
 
         Schema::create('sucursal', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
             $table->foreignUuid('id_negocio')->constrained('negocio', 'id')->cascadeOnDelete();
             $table->text('nombre_sucursal');
-            $table->text('direccion_texto');
             $table->text('qr_estatico_url')->nullable();
             $table->text('imagen_portada_url')->nullable();
             $table->boolean('activo')->default(true);
             $table->timestampTz('fecha_creacion')->default(DB::raw('now()'));
             $table->timestampTz('fecha_eliminacion')->nullable();
         });
-        DB::statement('ALTER TABLE sucursal ADD COLUMN ubicacion_gps point NOT NULL');
-        DB::statement('CREATE INDEX idx_sucursal_geo ON sucursal USING GIST (ubicacion_gps)');
 
         Schema::create('zona_cobertura', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
-            $table->foreignUuid('id_sucursal')->constrained('sucursal', 'id')->cascadeOnDelete();
+          $table->foreignUuid('id_negocio')->constrained('negocio', 'id')->cascadeOnDelete();
             $table->text('nombre');
             $table->decimal('costo_envio', 12, 2)->default(0);
             $table->integer('tiempo_min_extra')->default(0);
@@ -166,7 +166,6 @@ return new class extends Migration
         DB::statement("CREATE INDEX idx_colaborador_usuario ON colaborador(id_usuario)");
         DB::statement("CREATE INDEX idx_horario_sucursal ON horario(id_sucursal)");
         DB::statement("CREATE INDEX idx_config_entrega_sucursal ON config_entrega(id_sucursal) WHERE activo = true");
-        DB::statement("CREATE INDEX idx_zona_cobertura_sucursal ON zona_cobertura(id_sucursal)");
         DB::statement("CREATE INDEX idx_galeria_sucursal ON galeria_sucursal(id_sucursal)");
         DB::statement("CREATE INDEX idx_galeria_producto ON galeria_producto(id_producto)");
         DB::statement("CREATE INDEX idx_contacto_entidad ON contacto_telefonico(id_sucursal, id_negocio)");
