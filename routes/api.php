@@ -20,6 +20,7 @@ Route::prefix('categorias')->group(function () {
     Route::post('/', [CategoriasController::class, 'store']);        // Crear
     Route::put('{id}', [CategoriasController::class, 'update']);     // Actualizar
     Route::delete('{id}', [CategoriasController::class, 'destroy']); // Eliminar
+    Route::get('negocios/{negocio}/categorias', [CategoriasController::class, 'indexByNegocio']);
 });
 Route::prefix('productos')->group(function () {
     Route::post('/', [ProductosController::class, 'store']);  // Crear producto

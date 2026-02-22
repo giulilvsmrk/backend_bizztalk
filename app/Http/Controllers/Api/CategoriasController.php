@@ -9,16 +9,23 @@ use App\Http\Resources\CategoriaResource;
 use App\Services\CategoriaService;
 use App\Models\Categoria;
 use Illuminate\Http\JsonResponse;
-
+use Illuminate\Http\Request;
 class CategoriasController extends Controller
 {
     public function __construct(private CategoriaService $service) {}
 
-    public function index(): JsonResponse
-    {
-        $categorias = Categoria::orderBy('nombre')->get();
-        return response()->json(CategoriaResource::collection($categorias));
+public function index(Request $request): JsonResponse
+{
+    $query = Categoria::query();
+
+    if ($request->filled('negocio_id')) {
+        $query->where('id_negocio', $request->negocio_id);
     }
+
+    $categorias = $query->orderBy('nombre')->get();
+
+    return response()->json(CategoriaResource::collection($categorias));
+}
 
     public function show(int $id): JsonResponse
     {
