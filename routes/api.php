@@ -13,7 +13,10 @@ use App\Http\Controllers\Api\ChatbotResolverController;
 use App\Http\Controllers\Api\ProductosController;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\Api\CategoriasController;
-
+use App\Http\Controllers\Api\LocalController;
+Route::middleware('auth:sanctum')
+    ->get('/mis-locales', [LocalController::class, 'misLocales']);
+    
 Route::prefix('categorias')->group(function () {
     Route::get('/', [CategoriasController::class, 'index']);          // Listar todas
     Route::get('{id}', [CategoriasController::class, 'show']);       // Ver una

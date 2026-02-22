@@ -21,6 +21,7 @@ class RegistroRequest extends FormRequest
             'telefono' => ['required', 'string', 'max:20', 'unique:usuario,telefono'],
             'correo' => ['nullable', 'email', 'max:100', 'unique:usuario,correo'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'rol' => ['required', 'in:cliente,dueno'], // 👈 aquí
         ];
     }
 

@@ -22,11 +22,11 @@ final class RegistrarUsuarioAction
                 'password_hash' => $dto->password,
                 'activo' => true,
             ]);
-            $rolCliente = Rol::where('nombre', 'cliente')->first();
-
-            if ($rolCliente) {
-                $usuario->roles()->attach($rolCliente->id);
+            $rol = Rol::where('nombre', $dto->rol)->first();
+            if ($rol) {
+                $usuario->roles()->attach($rol->id);
             }
+            
 
             return $usuario;
         });
