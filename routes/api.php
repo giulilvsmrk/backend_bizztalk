@@ -65,13 +65,13 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user', fn (Request $request) => $request->user());
 
-        Route::prefix('negocios')->controller(NegocioController::class)->group(function () {
+        /*Route::prefix('negocios')->controller(NegocioController::class)->group(function () {
             Route::post('/', 'store')->name('api.v1.negocios.store');
             Route::get('/propios', 'index');
             Route::get('/{id}', 'show');
             // Futuro: Route::put('/{id}', 'update');
             // Futuro: Route::delete('/{id}', 'destroy');
-        });
+        });*/
     }); 
 });
 
